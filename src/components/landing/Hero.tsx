@@ -11,6 +11,7 @@ import CV from "../svgs/CV";
 import Chat from "../svgs/Chat";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { about, mySkills } from "@/config/About";
 
 const buttonIcons = {
   CV: CV,
@@ -50,7 +51,7 @@ export default function Hero() {
   };
 
   return (
-    <Container className="mx-auto max-w-5xl">
+    <Container className="mx-auto max-w-5xl border border-gray-200 dark:border-gray-800 rounded-lg p-8">
       {/* Image */}
       <div className="w-40 h-40 shrink-0 rounded-full bg-blue-300 dark:bg-yellow-300 overflow-hidden relative flex items-center justify-center">
         <Image
@@ -94,24 +95,44 @@ export default function Hero() {
         })}
       </div>
 
+      {/* Skills Section */}
+      <div className="mt-8 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <p className="text-secondary font-bold mb-3">Skills</p>
+        <div className="flex flex-wrap gap-2">
+          {mySkills.map((skill) => (
+            <Tooltip key={skill.key}>
+              <TooltipTrigger asChild>
+                <div className="size-6 hover:cursor-pointer p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors box-content">
+                  {skill}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{skill.key}</TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </div>
+
       {/* Social Links */}
-      <div className="mt-8 flex gap-2">
-        {socialLinks.map((link) => (
-          <Tooltip key={link.name} delayDuration={0}>
-            <TooltipTrigger asChild>
-              <Link
-                href={link.href}
-                key={link.name}
-                className="text-secondary flex items-center gap-2"
-              >
-                <span className="size-6">{link.icon}</span>
-              </Link>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{link.name}</p>
-            </TooltipContent>
-          </Tooltip>
-        ))}
+      <div className="mt-4 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+        <p className="text-secondary font-bold mb-3">Connect</p>
+        <div className="flex flex-wrap gap-2">
+          {socialLinks.map((link) => (
+            <Tooltip key={link.name} delayDuration={0}>
+              <TooltipTrigger asChild>
+                <Link
+                  href={link.href}
+                  key={link.name}
+                  className="text-secondary flex items-center gap-2 p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <span className="size-6">{link.icon}</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{link.name}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
       </div>
     </Container>
   );
