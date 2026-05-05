@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/common/ThemeProviders";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
-
+import OnekoCat from "@/components/common/OnekoCat";
 import ReactLenis from "lenis/react";
 import { ViewTransitions } from "next-view-transitions";
 
@@ -38,6 +38,7 @@ export default function RootLayout({
               <Footer />
             </ReactLenis>
           </ThemeProvider>
+          <OnekoCat />
         </body>
       </html>
     </ViewTransitions>

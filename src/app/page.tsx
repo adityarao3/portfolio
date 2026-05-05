@@ -1,7 +1,6 @@
 import Hero from "@/components/landing/Hero";
 import Experience from "@/components/landing/Experience";
 import Projects from "@/components/landing/Projects";
-import About from "@/components/landing/About";
 import Github from "@/components/landing/Github";
 import Achievements from "@/components/landing/Achievements";
 import { Quote } from "@/components/common/Quote";
@@ -14,7 +13,6 @@ export default function Home() {
       <Hero />
       <Experience />
       <Projects />
-      <About />
       <Github />
       <Achievements />
       <Quote

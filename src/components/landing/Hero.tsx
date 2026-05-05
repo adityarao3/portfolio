@@ -98,16 +98,16 @@ export default function Hero() {
       {/* Skills Section */}
       <div className="mt-8 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
         <p className="text-secondary font-bold mb-3">Skills</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-4">
           {mySkills.map((skill) => (
-            <Tooltip key={skill.key}>
-              <TooltipTrigger asChild>
-                <div className="size-6 hover:cursor-pointer p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors box-content">
-                  {skill}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>{skill.key}</TooltipContent>
-            </Tooltip>
+            <div key={skill.key} className="flex flex-col items-center gap-1.5">
+              <div className="size-6 hover:cursor-pointer p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors box-content">
+                {skill}
+              </div>
+              <span className="text-muted-foreground text-[10px] font-semibold">
+                {skill.key}
+              </span>
+            </div>
           ))}
         </div>
       </div>

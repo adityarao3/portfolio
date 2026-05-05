@@ -21,7 +21,7 @@ const parseDescription = (text: string): string => {
 
 export function ExperienceCard({ experience }: ExperienceCardProps) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 rounded-xl border border-dashed border-gray-300 p-6 transition-all duration-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-500">
       {/* Company Header */}
       <div className="flex flex-col gap-2 md:flex-row md:justify-between">
         {/* Left Side */}

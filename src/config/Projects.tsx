@@ -11,7 +11,7 @@ export const projects: Project[] = [
     title: "Buildr.ai",
     description:
       "AI-powered website generator that enables full-site creation from natural-language prompts, with a scalable backend using Prisma ORM, PostgreSQL, and role-based access control.",
-    image: "/project/buildr.svg",
+    image: "/project/buildr.png",
     link: "https://buildr-delta.vercel.app/",
     technologies: [
       { name: "Next.js", icon: <NextJs key="nextjs" /> },
