@@ -1,13 +1,23 @@
+export interface NavItem {
+  label: string;
+  href: string;
+}
+
 export const navbarConfig = {
   logo: {
-    text: "Portfolio",
-    href: "/",
+    src: "/assets/AvatarImageBackground3.png",
+    alt: "logo",
+    width: 100,
+    height: 100,
   },
-  links: [
-    { href: "/", label: "Home" },
-    { href: "/projects", label: "Projects" },
-    { href: "/blog", label: "Blog" },
-    { href: "/journey", label: "Journey" },
-    { href: "/contact", label: "Contact" },
-  ],
+  navItems: [
+    {
+      label: "Work",
+      href: "/work-experience",
+    },
+    {
+      label: "Projects",
+      href: "/projects",
+    },
+  ] as NavItem[],
 };

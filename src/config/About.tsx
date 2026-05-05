@@ -21,10 +21,8 @@ import TypeScript from "@/components/technologies/TypeScript";
 import Vercel from "@/components/technologies/Vercel";
 
 export const about = {
-  name: "Ram",
-  description: `I am a passionate software developer who loves building modern web applications. 
-  With expertise in full-stack development, I create seamless user experiences using the latest technologies. 
-  I'm constantly learning and exploring new tools to improve my craft.`,
+  name: "Aditya Kumar Rao",
+  description: `I'm a Full Stack Developer and Computer Science student at Chandigarh Engineering College (CGPA: 8.4/10). I build modern web applications with React, Next.js, Node.js, and TypeScript. I've solved 500+ DSA problems on LeetCode and Codeforces, and was a SIH 2024 Finalist. I love turning ideas into clean, scalable software.`,
 };
 
 export const mySkills = [
