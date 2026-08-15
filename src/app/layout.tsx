@@ -7,13 +7,33 @@ import OnekoCat from "@/components/common/OnekoCat";
 import ReactLenis from "lenis/react";
 import { ViewTransitions } from "next-view-transitions";
 
+const siteUrl = "https://aditya-rao.dev";
+const siteTitle = "Aditya Kumar Rao — Full Stack Developer";
+const siteDescription =
+  "Full Stack Developer and CS student. Building modern web apps with React, Next.js, Node.js, and TypeScript.";
+
 export const metadata: Metadata = {
-  title: "Aditya Kumar Rao — Full Stack Developer",
-  description:
-    "Full Stack Developer and CS student. Building modern web apps with React, Next.js, Node.js, and TypeScript.",
+  metadataBase: new URL(siteUrl),
+  title: siteTitle,
+  description: siteDescription,
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/favicon.svg",
     apple: "/favicon.svg",
+  },
+  openGraph: {
+    type: "website",
+    url: siteUrl,
+    siteName: "Aditya Kumar Rao",
+    title: siteTitle,
+    description: siteDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteTitle,
+    description: siteDescription,
   },
 };
 

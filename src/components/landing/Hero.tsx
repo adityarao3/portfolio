@@ -29,7 +29,7 @@ export default function Hero() {
         const SkillComponent =
           skillComponents[part.skill.component as keyof typeof skillComponents];
         return (
-          <Skill key={part.key} name={part.skill.name} href={part.skill.href}>
+          <Skill key={part.key} name={part.skill.name}>
             <SkillComponent />
           </Skill>
         );
