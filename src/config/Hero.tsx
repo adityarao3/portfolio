@@ -95,14 +95,14 @@ export const heroConfig = {
     {
       variant: "outline",
       text: "Resume / CV",
-      href: "/resume",
+      href: "/Aditya_Kumar_Rao_Resume.pdf",
       icon: "CV",
     },
     {
       variant: "default",
-      text: "Get in touch",
-      href: "/contact",
-      icon: "Chat",
+      text: "Send an email",
+      href: "mailto:adityarao9541@gmail.com",
+      icon: "Mail",
     },
   ],
 };
@@ -111,22 +111,22 @@ export const heroConfig = {
 export const socialLinks = [
   {
     name: "X",
-    href: "https://x.com/ramxcodes",
+    href: "https://x.com/realraoaditya",
     icon: <X />,
   },
   {
     name: "LinkedIn",
-    href: "https://www.linkedin.com/in/ramxcodes/",
+    href: "https://www.linkedin.com/in/adityarao2003/",
     icon: <LinkedIn />,
   },
   {
     name: "Github",
-    href: "https://github.com/ramxcodes",
+    href: "https://github.com/adityarao3",
     icon: <Github />,
   },
   {
-    name: "Email",
-    href: "mailto:ramxcodes@gmail.com",
+    name: "Get in touch",
+    href: "mailto:adityarao9541@gmail.com",
     icon: <Mail />,
   },
 ];
