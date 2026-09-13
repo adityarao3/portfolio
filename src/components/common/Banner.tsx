@@ -7,7 +7,7 @@ export default function Banner() {
     // Spans the content column, with negative insets cancelling the
     // Container padding. bg-background + z-10 keep the page rules from
     // showing through the art; they belong below the banner only.
-    <div className="bg-background relative z-10 -mx-4 mb-10 h-[32vh] max-h-[340px] min-h-[200px] overflow-hidden sm:-mx-6 lg:-mx-8">
+    <div className="bg-background relative z-10 -mx-4 mb-10 h-[22vh] max-h-[240px] min-h-[150px] overflow-hidden sm:-mx-6 lg:-mx-8">
       {/* Day / night art swap, following the active theme. */}
       <Image
         src="/assets/banner.webp"
@@ -15,7 +15,7 @@ export default function Banner() {
         fill
         priority
         sizes="(max-width: 768px) 100vw, 768px"
-        className="object-cover object-center dark:hidden"
+        className="object-cover object-[center_58%] dark:hidden"
       />
       <Image
         src="/assets/banner-dark.webp"
@@ -23,7 +23,7 @@ export default function Banner() {
         fill
         priority
         sizes="(max-width: 768px) 100vw, 768px"
-        className="hidden object-cover object-center dark:block"
+        className="hidden object-cover object-[center_58%] dark:block"
       />
 
       <BannerParticles />

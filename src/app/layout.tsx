@@ -65,12 +65,12 @@ export default function RootLayout({
               <div
                 aria-hidden="true"
                 className="rule-node left-1/2 hidden -translate-x-[385px] md:block"
-                style={{ top: "calc(32vh - 1px)" }}
+                style={{ top: "calc(22vh - 1px)" }}
               />
               <div
                 aria-hidden="true"
                 className="rule-node left-1/2 hidden translate-x-[383px] md:block"
-                style={{ top: "calc(32vh - 1px)" }}
+                style={{ top: "calc(22vh - 1px)" }}
               />
 
               <SideIndex />

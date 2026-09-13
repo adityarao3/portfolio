@@ -52,17 +52,25 @@ export default function Hero() {
   };
 
   return (
-    <Container className="row-rule row-rule-wide mx-auto px-8 pt-6 pb-8">
-      {/* Avatar, with the theme toggle opposite it just under the banner. */}
-      <div className="flex items-start justify-between">
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-blue-300 dark:bg-yellow-300">
-          <Image
-            src={avatar}
-            alt="hero"
-            fill
-            sizes="80px"
-            className="object-cover object-top"
-          />
+    <Container className="row-rule row-rule-wide relative mx-auto px-8 pt-6 pb-8">
+      {/* Avatar row, ruled and noded like the banner cell above it. */}
+      <div className="row-rule row-rule-wide relative flex items-start justify-between pb-5">
+        {/* Blueprint frame: outer rule-coloured border, inner rounded square.
+            A square avoids the second crop a circle imposes, so the whole
+            head stays visible. */}
+        <div className="relative shrink-0 rounded-[8px] border-[1.5px] border-black/30 p-[3px] dark:border-white/[0.15]">
+          <div className="relative h-16 w-16 overflow-hidden rounded-[5px] bg-zinc-100 sm:h-20 sm:w-20 dark:bg-zinc-900">
+            <Image
+              src={avatar}
+              alt="hero"
+              width={240}
+              height={240}
+              quality={90}
+              priority
+              sizes="(min-width: 640px) 80px, 64px"
+              className="h-full w-full object-cover object-center"
+            />
+          </div>
         </div>
         <ThemeToggleButton variant="circle" start="top-right" blur />
       </div>
