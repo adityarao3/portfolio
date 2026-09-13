@@ -25,7 +25,7 @@ export function ExperienceCard({ experience }: ExperienceCardProps) {
       {/* Company Header */}
       <div className="flex flex-col gap-2 md:flex-row md:justify-between">
         {/* Left Side */}
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <Image
             src={experience.image}
             alt={experience.company}
@@ -33,7 +33,7 @@ export function ExperienceCard({ experience }: ExperienceCardProps) {
             height={100}
             className="size-12 rounded-md"
           />
-          <div className="flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <div className="flex items-center gap-2">
               <h3
                 className={cn(
@@ -109,8 +109,9 @@ export function ExperienceCard({ experience }: ExperienceCardProps) {
             <p className="text-secondary">{experience.position}</p>
           </div>
         </div>
-        {/* Right Side */}
-        <div className="text-secondary flex flex-col md:text-right">
+        {/* Right Side — shrink-0 so a long position title can't squeeze the
+            dates into wrapping. */}
+        <div className="text-secondary flex shrink-0 flex-col text-sm md:text-right">
           <p>
             {experience.startDate} —{" "}
             {experience.isCurrent ? "Present" : experience.endDate}

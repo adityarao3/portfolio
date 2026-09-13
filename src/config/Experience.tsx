@@ -39,9 +39,9 @@ export const experiences: Experience[] = [
   {
     isCurrent: true,
     company: "The Ninja Studio",
-    position: "Backend Developer Intern — Canadian Freight Logistics SaaS",
+    position: "Backend Developer Intern",
     location: "Remote",
-    image: "/company/tcil.svg",
+    image: "/company/ninjastudio.png",
     description: [
       "Migrated *7 AWS Lambda microservices* into a unified *NestJS monolith*, reducing deployment pipelines by *60%* and eliminating cold-start latency.",
       "Built an end-to-end auth flow — OTP signup, email verification, company auto-provisioning and role assignment — replacing *3 Cognito triggers* and cutting onboarding time by *40%*.",
@@ -51,7 +51,7 @@ export const experiences: Experience[] = [
     ],
     startDate: "May 2026",
     endDate: "Present",
-    website: "",
+    website: "https://www.theninjastudio.com/",
     technologies: [
       { name: "NestJS", href: "https://nestjs.com", icon: <NestJs /> },
       { name: "TypeScript", href: "https://www.typescriptlang.org", icon: <TypeScript /> },
