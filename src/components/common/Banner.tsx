@@ -33,6 +33,9 @@ export default function Banner() {
       <div className="from-background/90 dark:from-background/50 pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-10 bg-gradient-to-t to-transparent dark:to-transparent" />
       <div className="from-background/90 dark:from-background/40 pointer-events-none absolute top-0 bottom-0 left-0 z-20 w-12 bg-gradient-to-r to-transparent dark:to-transparent" />
       <div className="from-background/90 dark:from-background/40 pointer-events-none absolute top-0 right-0 bottom-0 z-20 w-12 bg-gradient-to-l to-transparent dark:to-transparent" />
+
+      {/* Dotted rule closing the banner cell, bleeding past the column. */}
+      <div className="banner-rule" aria-hidden="true" />
     </div>
   );
 }

@@ -52,7 +52,8 @@ export default function RootLayout({
             enableSystem
           >
             <ReactLenis root>
-              {/* Vertical rules flanking the content column. */}
+              {/* Blueprint rules: dotted verticals flanking the content
+                  column, with solid nodes where they meet the banner edge. */}
               <div
                 aria-hidden="true"
                 className="page-rule left-1/2 hidden -translate-x-[384px] md:block"
@@ -60,6 +61,16 @@ export default function RootLayout({
               <div
                 aria-hidden="true"
                 className="page-rule left-1/2 hidden translate-x-[384px] md:block"
+              />
+              <div
+                aria-hidden="true"
+                className="rule-node left-1/2 hidden -translate-x-[385px] md:block"
+                style={{ top: "calc(32vh - 1px)" }}
+              />
+              <div
+                aria-hidden="true"
+                className="rule-node left-1/2 hidden translate-x-[383px] md:block"
+                style={{ top: "calc(32vh - 1px)" }}
               />
 
               <SideIndex />

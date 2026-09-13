@@ -161,12 +161,26 @@
   left: -1rem;
   right: -1rem;
   height: 0;
-  border-bottom: 0.8px solid rgba(0, 0, 0, 0.22);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
   pointer-events: none;
+  -webkit-mask-image: repeating-linear-gradient(
+    to right,
+    black 0,
+    black 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  mask-image: repeating-linear-gradient(
+    to right,
+    black 0,
+    black 1px,
+    transparent 1px,
+    transparent 6px
+  );
 }
 
 .dark .row-rule::after {
-  border-bottom-color: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Full-bleed variant for section boundaries. */
@@ -181,20 +195,78 @@
 }
 
 /* Full-height rules marking the column edges and centre line. */
+/* Vertical column rules. A repeating mask chops the solid border into
+   1px-on / 5px-off segments, giving the fine dotted blueprint line. */
 .page-rule {
   position: fixed;
   top: 0;
   bottom: 0;
   width: 0;
-  /* Sub-pixel hairline: renders as a faint broken line rather than a hard
-     rule, which is the texture the reference layout has. */
-  border-right: 0.8px solid rgba(0, 0, 0, 0.22);
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
   pointer-events: none;
   z-index: 0;
+  -webkit-mask-image: repeating-linear-gradient(
+    to bottom,
+    black 0,
+    black 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  mask-image: repeating-linear-gradient(
+    to bottom,
+    black 0,
+    black 1px,
+    transparent 1px,
+    transparent 6px
+  );
 }
 
 .dark .page-rule {
-  border-right-color: rgba(255, 255, 255, 0.08);
+  border-right-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Dotted rule closing the banner cell, bleeding past the column edges. */
+.banner-rule {
+  position: absolute;
+  bottom: 0;
+  left: -100vw;
+  right: -100vw;
+  height: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 30;
+  -webkit-mask-image: repeating-linear-gradient(
+    to right,
+    black 0,
+    black 1px,
+    transparent 1px,
+    transparent 6px
+  );
+  mask-image: repeating-linear-gradient(
+    to right,
+    black 0,
+    black 1px,
+    transparent 1px,
+    transparent 6px
+  );
+}
+
+.dark .banner-rule {
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Solid node marking a line intersection. */
+.rule-node {
+  position: fixed;
+  width: 2px;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.dark .rule-node {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .font-hanken-grotesk {
