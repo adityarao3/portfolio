@@ -1,4 +1,3 @@
-import Appwrite from "@/components/technologies/Appwrite";
 import CSS from "@/components/technologies/CSS";
 import Express from "@/components/technologies/ExpressJs";
 import Figma from "@/components/technologies/Figma";
@@ -66,6 +65,5 @@ export const mySkills = [
   <Postman key="postman" />,
   <Html key="html" />,
   <CSS key="css" />,
-  <Appwrite key="appwrite" />,
 
 ];

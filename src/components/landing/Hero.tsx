@@ -9,16 +9,12 @@ import Container from "../common/Container";
 import Skill from "../common/Skill";
 import { ThemeToggleButton } from "../common/ThemeSwitch";
 import CV from "../svgs/CV";
-import Chat from "../svgs/Chat";
-import Mail from "../svgs/Mail";
 import { Button } from "../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { about, mySkills } from "@/config/About";
 
 const buttonIcons = {
   CV: CV,
-  Chat: Chat,
-  Mail: Mail,
 };
 
 export default function Hero() {

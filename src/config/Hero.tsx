@@ -98,12 +98,6 @@ export const heroConfig = {
       href: "/Aditya_Kumar_Rao_Resume.pdf",
       icon: "CV",
     },
-    {
-      variant: "default",
-      text: "Send an email",
-      href: "mailto:adityarao9541@gmail.com",
-      icon: "Mail",
-    },
   ],
 };
 
