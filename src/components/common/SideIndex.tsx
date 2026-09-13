@@ -41,11 +41,11 @@ export default function SideIndex() {
   return (
     <nav
       aria-label="Page index"
-      className={`pointer-events-auto fixed left-[calc(50%+400px)] z-20 hidden w-[150px] flex-col gap-3 lg:flex ${
-        isHome ? "top-[22vh]" : "top-16"
+      className={`pointer-events-auto z-20 gap-3 max-lg:sticky max-lg:top-0 max-lg:flex max-lg:overflow-x-auto max-lg:border-b max-lg:border-black/10 max-lg:bg-[var(--background)]/90 max-lg:px-4 max-lg:py-3 max-lg:backdrop-blur-sm lg:fixed lg:left-[calc(50%+400px)] lg:flex lg:w-[150px] lg:flex-col lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 dark:max-lg:border-white/10 ${
+        isHome ? "lg:top-[22vh]" : "lg:top-16"
       }`}
     >
-      <h3 className="mb-1 text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase dark:text-zinc-600">
+      <h3 className="mb-1 hidden text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase lg:block dark:text-zinc-600">
         Index
       </h3>
 
@@ -55,14 +55,14 @@ export default function SideIndex() {
         <a
           key={s.id}
           href={`#${s.id}`}
-          className={`flex items-center gap-3 text-[12px] font-medium tracking-[0.05em] transition-all duration-300 ease-out ${
+          className={`flex shrink-0 items-center gap-3 text-[12px] font-medium tracking-[0.05em] whitespace-nowrap transition-all duration-300 ease-out ${
             active === s.id
               ? "text-zinc-900 dark:text-zinc-100"
               : "text-zinc-400 hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
           }`}
         >
           <span
-            className={`h-px transition-all duration-300 ease-out ${
+            className={`hidden h-px transition-all duration-300 ease-out lg:block ${
               active === s.id ? "w-4 bg-current" : "w-0 bg-transparent"
             }`}
           />

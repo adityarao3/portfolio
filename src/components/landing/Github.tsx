@@ -190,12 +190,14 @@ export default function Github() {
               ))}
             </div>
 
-            {/* 53 fluid columns, so the grid always fills the content width. */}
-            <div
-              className="grid grid-cols-[repeat(53,minmax(0,1fr))] gap-x-[2px]"
-              role="img"
-              aria-label={`${totalContributions} contributions in the last year`}
-            >
+            {/* 53 fluid columns fill the column on desktop; below that the
+                cells would shrink to a few px, so scroll instead. */}
+            <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:overflow-x-visible sm:px-0">
+              <div
+                className="grid min-w-[560px] grid-cols-[repeat(53,minmax(0,1fr))] gap-x-[2px] sm:min-w-0"
+                role="img"
+                aria-label={`${totalContributions} contributions in the last year`}
+              >
               {weeks.map((week, colIndex) => (
                 <div key={colIndex} className="flex flex-col gap-[2px]">
                   {colIndex === 0 &&
@@ -213,8 +215,9 @@ export default function Github() {
                       className={`aspect-square w-full rounded-[2px] opacity-80 transition-transform hover:scale-125 hover:opacity-100 dark:opacity-70 dark:hover:opacity-100 ${levelColors[day.level]}`}
                     />
                   ))}
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Legend */}

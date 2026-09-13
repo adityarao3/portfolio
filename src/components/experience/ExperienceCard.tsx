@@ -111,7 +111,7 @@ export function ExperienceCard({ experience }: ExperienceCardProps) {
         </div>
         {/* Right Side — shrink-0 so a long position title can't squeeze the
             dates into wrapping. */}
-        <div className="text-secondary flex shrink-0 flex-col text-sm md:text-right">
+        <div className="text-secondary flex shrink-0 flex-col text-sm whitespace-nowrap md:text-right">
           <p>
             {experience.startDate} —{" "}
             {experience.isCurrent ? "Present" : experience.endDate}
