@@ -1,5 +1,4 @@
 import Appwrite from "@/components/technologies/Appwrite";
-import Bun from "@/components/technologies/Bun";
 import CSS from "@/components/technologies/CSS";
 import Express from "@/components/technologies/ExpressJs";
 import Figma from "@/components/technologies/Figma";
@@ -35,7 +34,6 @@ export const mySkills = [
   <MongoDB key="mongodb" />,
   <PostgreSQL key="postgresql" />,
   <Prisma key="prisma" />,
-  <Bun key="bun" />,
   <TailwindCss key="tailwindcss" />,
   <Shadcn key="shadcn" />,
   <Motion key="motion" />,

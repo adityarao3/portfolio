@@ -11,10 +11,6 @@ const sections = [
   { id: "achievements", label: "Achievements" },
 ];
 
-const pages = [
-  { href: "/work-experience", label: "Work" },
-  { href: "/projects", label: "All Projects" },
-];
 
 export default function SideIndex() {
   const [active, setActive] = useState<string>("");
@@ -74,31 +70,15 @@ export default function SideIndex() {
         </a>
       ))}
 
-      <div
-        className={`flex flex-col gap-3 ${
-          isHome
-            ? "mt-4 border-t border-black/10 pt-4 dark:border-white/10"
-            : ""
-        }`}
-      >
-        {!isHome && (
-          <Link
-            href="/"
-            className="text-[12px] font-medium tracking-[0.05em] text-zinc-400 transition-colors duration-300 hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
-          >
-            Home
-          </Link>
-        )}
-        {pages.map((p) => (
-          <Link
-            key={p.href}
-            href={p.href}
-            className="text-[12px] font-medium tracking-[0.05em] text-zinc-400 transition-colors duration-300 hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
-          >
-            {p.label}
-          </Link>
-        ))}
-      </div>
+      {/* Off the landing page there are no section anchors, so offer a way back. */}
+      {!isHome && (
+        <Link
+          href="/"
+          className="text-[12px] font-medium tracking-[0.05em] text-zinc-400 transition-colors duration-300 hover:text-zinc-600 dark:text-zinc-600 dark:hover:text-zinc-400"
+        >
+          Home
+        </Link>
+      )}
 
     </nav>
   );

@@ -154,12 +154,12 @@ export default function Github() {
           </div>
         ) : (
           <div className="relative overflow-hidden">
-            <div className="bg-background/50 relative rounded-lg border border-dashed border-black/20 p-6 backdrop-blur-sm dark:border-white/10">
+            <div className="relative py-2">
               <div className="w-full overflow-x-auto">
                 <ActivityCalendar
                   data={contributions}
-                  blockSize={12}
-                  blockMargin={4}
+                  blockSize={11}
+                  blockMargin={2}
                   fontSize={githubConfig.fontSize}
                   colorScheme={theme === "dark" ? "dark" : "light"}
                   maxLevel={githubConfig.maxLevel}

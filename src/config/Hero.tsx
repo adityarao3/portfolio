@@ -27,7 +27,6 @@ import Github from "@/components/svgs/Github";
 import LinkedIn from "@/components/svgs/LinkedIn";
 import Mail from "@/components/svgs/Mail";
 import X from "@/components/svgs/X";
-import Bun from "@/components/technologies/Bun";
 import JavaScript from "@/components/technologies/JavaScript";
 import MongoDB from "@/components/technologies/MongoDB";
 import NextJs from "@/components/technologies/NextJs";
@@ -43,7 +42,6 @@ export const skillComponents = {
   TypeScript: TypeScript,
   ReactIcon: ReactIcon,
   NextJs: NextJs,
-  Bun: Bun,
   PostgreSQL: PostgreSQL,
   NodeJs: NodeJs,
   MongoDB: MongoDB,
@@ -55,7 +53,7 @@ export const heroConfig = {
   // Personal Information
   name: "Aditya Rao",
   title: "A Full Stack web developer.",
-  avatar: "/assets/avatar-head.png",
+  avatar: "/assets/avatar-bw.png",
 
   // Skills Configuration
   skills: [
@@ -75,9 +73,9 @@ export const heroConfig = {
       component: "NextJs",
     },
     {
-      name: "Bun",
-     
-      component: "Bun",
+      name: "Node.js",
+
+      component: "NodeJs",
     },
     {
       name: "PostgreSQL",

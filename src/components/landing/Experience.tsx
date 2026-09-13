@@ -9,7 +9,7 @@ export default function Experience() {
   return (
     <Container id="experience" className="row-rule row-rule-wide mt-10 scroll-mt-8 pb-10">
       <SectionHeading subHeading="Featured" heading="Experience" />
-      <div className="mt-4 flex flex-col gap-5">
+      <div className="mt-4 flex flex-col">
         {experiences.slice(0, 2).map((experience: Experience) => (
           <ExperienceCard key={experience.company} experience={experience} />
         ))}
