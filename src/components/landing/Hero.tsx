@@ -68,7 +68,7 @@ export default function Hero() {
               quality={90}
               priority
               sizes="(min-width: 640px) 80px, 64px"
-              className="h-full w-full object-cover object-center"
+              className="h-full w-full object-cover object-center opacity-90 grayscale contrast-100 mix-blend-multiply dark:mix-blend-normal"
             />
           </div>
         </div>

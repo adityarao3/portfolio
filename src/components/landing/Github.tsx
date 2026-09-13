@@ -1,22 +1,12 @@
 "use client";
 
 import { githubConfig } from "@/config/Github";
-import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import Container from "../common/Container";
 import GithubIcon from "../svgs/Github";
 import { Button } from "../ui/button";
-
-const ActivityCalendar = dynamic(
-  () =>
-    import("react-activity-calendar").then((mod) => ({
-      default: mod.ActivityCalendar,
-    })),
-  { ssr: false }
-);
 
 type ContributionItem = {
   date: string;
@@ -28,6 +18,43 @@ type GitHubContributionResponse = {
   total?: Record<string, number>;
   contributions?: unknown[];
 };
+
+/** Tailwind classes per contribution level, GitHub's green ramp. */
+const levelColors = [
+  "bg-zinc-100 dark:bg-zinc-800",
+  "bg-emerald-200 dark:bg-emerald-900",
+  "bg-emerald-400 dark:bg-emerald-700",
+  "bg-emerald-500 dark:bg-emerald-500",
+  "bg-emerald-700 dark:bg-emerald-400",
+];
+
+/** Group days into calendar weeks, starting each week on Sunday. */
+function groupIntoWeeks(days: ContributionItem[]): ContributionItem[][] {
+  const weeks: ContributionItem[][] = [];
+  let current: ContributionItem[] = [];
+
+  for (const day of days) {
+    current.push(day);
+    if (new Date(day.date).getDay() === 6) {
+      weeks.push(current);
+      current = [];
+    }
+  }
+  if (current.length) weeks.push(current);
+
+  return weeks;
+}
+
+/** Evenly spaced month labels across the grid. */
+function buildMonthLabels(days: ContributionItem[]): string[] {
+  if (!days.length) return [];
+  const seen: string[] = [];
+  for (const day of days) {
+    const label = githubConfig.months[new Date(day.date).getMonth()];
+    if (seen[seen.length - 1] !== label) seen.push(label);
+  }
+  return seen;
+}
 
 function filterLastYear(contributions: ContributionItem[]): ContributionItem[] {
   const oneYearAgo = new Date();
@@ -44,7 +71,9 @@ export default function Github() {
   const [totalContributions, setTotalContributions] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const { theme } = useTheme();
+
+  const weeks = groupIntoWeeks(contributions);
+  const monthLabels = buildMonthLabels(contributions);
 
   useEffect(() => {
     async function fetchData() {
@@ -153,29 +182,56 @@ export default function Github() {
             </Button>
           </div>
         ) : (
-          <div className="relative overflow-hidden">
-            <div className="relative py-2">
-              <div className="w-full overflow-x-auto">
-                <ActivityCalendar
-                  data={contributions}
-                  blockSize={11}
-                  blockMargin={2}
-                  fontSize={githubConfig.fontSize}
-                  colorScheme={theme === "dark" ? "dark" : "light"}
-                  maxLevel={githubConfig.maxLevel}
-                  showTotalCount={false}
-                  showColorLegend={true}
-                  showMonthLabels={true}
-                  theme={githubConfig.theme}
-                  labels={{
-                    months: githubConfig.months,
-                    weekdays: githubConfig.weekdays,
-                    totalCount: githubConfig.totalCountLabel,
-                  }}
-                  style={{
-                    color: "rgb(139, 148, 158)",
-                  }}
-                />
+          <div className="relative py-2">
+            {/* Month labels */}
+            <div className="mb-2 flex w-full justify-between text-[10px] text-zinc-400 dark:text-zinc-500">
+              {monthLabels.map((month, i) => (
+                <span key={`${month}-${i}`}>{month}</span>
+              ))}
+            </div>
+
+            {/* 53 fluid columns, so the grid always fills the content width. */}
+            <div
+              className="grid grid-cols-[repeat(53,minmax(0,1fr))] gap-x-[2px]"
+              role="img"
+              aria-label={`${totalContributions} contributions in the last year`}
+            >
+              {weeks.map((week, colIndex) => (
+                <div key={colIndex} className="flex flex-col gap-[2px]">
+                  {colIndex === 0 &&
+                    Array.from({ length: 7 - week.length }).map((_, i) => (
+                      <div
+                        key={`pad-${i}`}
+                        className="aspect-square w-full rounded-[2px] bg-transparent"
+                      />
+                    ))}
+
+                  {week.map((day) => (
+                    <div
+                      key={day.date}
+                      title={`${day.count} contributions on ${day.date}`}
+                      className={`aspect-square w-full rounded-[2px] opacity-80 transition-transform hover:scale-125 hover:opacity-100 dark:opacity-70 dark:hover:opacity-100 ${levelColors[day.level]}`}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                Less active
+              </span>
+              <div className="flex shrink-0 items-center gap-1.5">
+                {levelColors.map((cell, i) => (
+                  <div
+                    key={i}
+                    className={`size-2 rounded-[2px] opacity-80 dark:opacity-70 ${cell}`}
+                  />
+                ))}
+                <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  More active
+                </span>
               </div>
             </div>
           </div>
