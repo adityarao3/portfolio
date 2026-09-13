@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "next-view-transitions";
+import { useLenis } from "lenis/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -16,6 +17,19 @@ export default function SideIndex() {
   const [active, setActive] = useState<string>("");
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const lenis = useLenis();
+
+  // Lenis owns the scroll, so a native anchor jump fights it. Hand the
+  // target to Lenis instead and let it animate there.
+  const scrollTo = (event: React.MouseEvent, id: string) => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    event.preventDefault();
+    setActive(id);
+    if (lenis) lenis.scrollTo(target, { offset: -90, duration: 1 });
+    else target.scrollIntoView({ behavior: "smooth", block: "start" });
+    history.replaceState(null, "", `#${id}`);
+  };
 
   useEffect(() => {
     if (!isHome) return;
@@ -55,6 +69,7 @@ export default function SideIndex() {
         <a
           key={s.id}
           href={`#${s.id}`}
+          onClick={(event) => scrollTo(event, s.id)}
           className={`flex shrink-0 items-center gap-3 text-[12px] font-medium tracking-[0.05em] whitespace-nowrap transition-all duration-300 ease-out ${
             active === s.id
               ? "text-zinc-900 dark:text-zinc-100"
