@@ -13,16 +13,26 @@ import { useEffect, useRef } from "react";
 
 const SPRITES = {
   idle: "/runner/idle.png",
-  run: ["/runner/run-1.png", "/runner/run-2.png"],
+  run: [
+    "/runner/run-1.png",
+    "/runner/run-2.png",
+    "/runner/run-3.png",
+    "/runner/run-4.png",
+    "/runner/run-5.png",
+    "/runner/run-6.png",
+    "/runner/run-7.png",
+  ],
   alert: "/runner/alert.png",
 };
 
-// oneko's timing: a fixed 10px step on a 100ms tick, so ~100px/sec with
-// the run cycle advancing once per step.
+// oneko's motion: a fixed 10px step on a 100ms tick, ~100px/sec.
 const STEP = 10;
 const TICK_MS = 100;
+// The 7-frame run cycle advances faster than the move tick, so a full
+// stride reads as a run rather than a plod.
+const FRAME_MS = 70;
 const HEIGHT = 56; // rendered sprite height in px
-const WIDTH = Math.round((HEIGHT * 256) / 240);
+const WIDTH = Math.round((HEIGHT * 280) / 200);
 const STOP_DISTANCE = 48; // matches oneko
 
 export default function RunnerPet() {
@@ -61,25 +71,28 @@ export default function RunnerPet() {
       }
     };
 
-    const tick = (now: number) => {
-      // Step on a fixed interval like oneko, rather than every frame.
-      if (now - lastFrameAt < TICK_MS) {
-        raf = requestAnimationFrame(tick);
-        return;
-      }
-      lastFrameAt = now;
+    let lastStepAt = performance.now();
 
+    const tick = (now: number) => {
       const dx = targetX - x;
       const dy = targetY - y;
       const distance = Math.hypot(dx, dy);
+      const chasing = distance > STOP_DISTANCE;
 
-      if (distance > STOP_DISTANCE) {
+      // Position steps on oneko's 100ms cadence.
+      if (chasing && now - lastStepAt >= TICK_MS) {
+        lastStepAt = now;
         x += (dx / distance) * STEP;
         y += (dy / distance) * STEP;
-
         if (Math.abs(dx) > 2) facingLeft = dx < 0;
+      }
 
-        frame = (frame + 1) % SPRITES.run.length;
+      // The run cycle runs on its own, faster clock.
+      if (chasing) {
+        if (now - lastFrameAt >= FRAME_MS) {
+          lastFrameAt = now;
+          frame = (frame + 1) % SPRITES.run.length;
+        }
         setSprite(SPRITES.run[frame]);
       } else {
         // Caught up: brief alert pose, then settle into idle. Reset the run
