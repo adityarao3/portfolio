@@ -6,9 +6,13 @@ export interface Achievement {
 
 export const achievements: Achievement[] = [
   {
-    text: "Solved 500+ DSA problems on LeetCode and Codeforces",
+    text: "Solved 500+ DSA problems on LeetCode",
     highlight: "500+",
     link: "https://leetcode.com/u/rao_aditya/",
+  },
+  {
+    text: "Ranked 1896 in Weekly LeetCode Contest 500 out of 27,274 participants",
+    highlight: "Ranked 1896",
   },
   {
     text: "Ranked 3003 in Biweekly LeetCode Contest 494 out of 34,424 participants",

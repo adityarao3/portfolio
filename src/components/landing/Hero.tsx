@@ -88,8 +88,8 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Buttons */}
-      <div className="mt-6 flex gap-3">
+      {/* Buttons, with the social icons sharing the row. */}
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         {buttons.map((button, index) => {
           const IconComponent =
             buttonIcons[button.icon as keyof typeof buttonIcons];
@@ -120,6 +120,28 @@ export default function Hero() {
             </Button>
           );
         })}
+
+        {/* Socials sit alongside the buttons rather than in their own box. */}
+        <div className="flex flex-wrap items-center gap-2">
+          {socialLinks.map((link) => (
+            <Tooltip key={link.name} delayDuration={0}>
+              <TooltipTrigger asChild>
+                <a
+                  href={link.href}
+                  {...(link.href.startsWith("mailto:")
+                    ? {}
+                    : { target: "_blank", rel: "noopener noreferrer" })}
+                  className="text-secondary flex items-center gap-2 rounded-lg border border-gray-200 p-2 transition-colors hover:bg-gray-100 dark:border-gray-800 dark:hover:bg-gray-800"
+                >
+                  <span className="size-5">{link.icon}</span>
+                </a>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{link.name}</p>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
       </div>
 
       {/* Skills Section */}
@@ -139,28 +161,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Social Links */}
-      <div className="mt-3 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
-        <p className="text-secondary text-[10px] font-bold tracking-[0.2em] uppercase mb-2">Connect</p>
-        <div className="flex flex-wrap gap-2">
-          {socialLinks.map((link) => (
-            <Tooltip key={link.name} delayDuration={0}>
-              <TooltipTrigger asChild>
-                <Link
-                  href={link.href}
-                  key={link.name}
-                  className="text-secondary flex items-center gap-2 p-2 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <span className="size-6">{link.icon}</span>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{link.name}</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-        </div>
-      </div>
     </Container>
   );
 }
