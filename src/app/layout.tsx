@@ -52,6 +52,16 @@ export default function RootLayout({
             enableSystem
           >
             <ReactLenis root>
+              {/* Vertical rules flanking the content column. */}
+              <div
+                aria-hidden="true"
+                className="page-rule left-1/2 hidden -translate-x-[384px] md:block"
+              />
+              <div
+                aria-hidden="true"
+                className="page-rule left-1/2 hidden translate-x-[384px] md:block"
+              />
+
               <Navbar />
               {children}
 

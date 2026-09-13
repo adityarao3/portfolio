@@ -6,7 +6,7 @@ export default function Banner() {
   return (
     // Sits flush to the top and slightly wider than the text column, so the
     // whole composition stays visible instead of cropping to the viewport.
-    <div className="relative mb-10 h-[22vh] max-h-[240px] min-h-[150px] w-full overflow-hidden">
+    <div className="relative mb-10 h-[32vh] max-h-[340px] min-h-[200px] w-full overflow-hidden">
       {/* Day / night art swap, following the active theme. */}
       <Image
         src="/assets/banner.webp"
@@ -28,7 +28,7 @@ export default function Banner() {
       <BannerParticles />
 
       {/* Dissolve the bottom edge into the page instead of cutting it hard. */}
-      <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-24 bg-gradient-to-t to-transparent" />
+      <div className="from-background/90 pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-10 bg-gradient-to-t to-transparent" />
     </div>
   );
 }

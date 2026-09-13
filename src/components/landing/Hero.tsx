@@ -51,15 +51,15 @@ export default function Hero() {
   };
 
   return (
-    <Container className="mx-auto max-w-5xl border border-gray-200 dark:border-gray-800 rounded-lg p-8">
+    <Container className="mx-auto rounded-lg border border-gray-200 p-8 dark:border-gray-800">
       {/* Image */}
-      <div className="w-40 h-40 shrink-0 rounded-full bg-blue-300 dark:bg-yellow-300 overflow-hidden relative flex items-center justify-center">
+      <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full bg-blue-300 dark:bg-yellow-300">
         <Image
           src={avatar}
           alt="hero"
-          width={110}
-          height={110}
-          className="object-cover"
+          fill
+          sizes="112px"
+          className="origin-center scale-[1.08] object-cover object-center"
         />
       </div>
 

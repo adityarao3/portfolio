@@ -139,31 +139,44 @@
   @apply text-[#909092] dark:text-[#909092];
 }
 
-/* Dotted grid page background — fine, tight dots. */
+/* Dotted grid page background — soft and wide-spaced so it reads as
+   texture rather than noise. */
 .dotted-bg {
   background-color: var(--background);
   background-image: radial-gradient(
-    circle at 0.5px 0.5px,
-    rgba(0, 0, 0, 0.28) 0.5px,
-    transparent 0
+    circle,
+    rgba(113, 113, 122, 0.35) 1px,
+    transparent 1px
   );
-  background-size: 7px 7px;
+  background-size: 16px 16px;
 }
 
 .dark .dotted-bg {
   background-image: radial-gradient(
-    circle at 0.5px 0.5px,
-    rgba(255, 255, 255, 0.22) 0.5px,
-    transparent 0
+    circle,
+    rgba(161, 161, 170, 0.18) 1px,
+    transparent 1px
   );
 }
 
-/* Solid panel so the dots stay behind the content column, with rule lines
-   flanking it the way the reference layout does. */
+/* Content column sits on a solid panel so the grid stays behind the text. */
 .content-panel {
   background-color: var(--background);
-  border-left: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+}
+
+/* Full-height rules marking the column edges and centre line. */
+.page-rule {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .page-rule {
+  border-right-color: rgba(255, 255, 255, 0.1);
 }
 
 .font-hanken-grotesk {
