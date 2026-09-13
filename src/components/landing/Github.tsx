@@ -100,15 +100,15 @@ export default function Github() {
   }, []);
 
   return (
-    <Container id="github" className="row-rule row-rule-wide mt-16 scroll-mt-8 pb-16">
+    <Container id="github" className="row-rule row-rule-wide mt-10 scroll-mt-8 pb-10">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-foreground text-2xl font-bold">
+            <h2 className="text-foreground text-lg font-bold">
               {githubConfig.title}
             </h2>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-[13px]">
               <b>{githubConfig.username}</b>&apos;s {githubConfig.subtitle}
             </p>
             {!isLoading && !hasError && totalContributions > 0 && (

@@ -11,10 +11,10 @@ export default function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <div className="flex flex-col items-start">
-      <p className="text-secondary text-sm font-bold uppercase tracking-wider">
+      <p className="text-secondary text-[10px] font-bold tracking-[0.2em] uppercase">
         {subHeading}
       </p>
-      <h2 className="mt-2 text-3xl font-bold md:text-4xl">{heading}</h2>
+      <h2 className="mt-1 text-lg font-bold">{heading}</h2>
     </div>
   );
 }

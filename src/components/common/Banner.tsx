@@ -8,7 +8,9 @@ export default function Banner() {
     // whole composition stays visible instead of cropping to the viewport.
     // Negative insets cancel the Container's padding so the art meets the
     // column edges and sits flush against the top of the page.
-    <div className="relative -mx-4 mb-10 h-[32vh] max-h-[340px] min-h-[200px] overflow-hidden sm:-mx-6 lg:-mx-8">
+    // bg-background + z-10 keeps the page rules from showing through the art;
+    // they should only be visible below the banner.
+    <div className="bg-background relative z-10 -mx-4 mb-10 h-[32vh] max-h-[340px] min-h-[200px] overflow-hidden sm:-mx-6 lg:-mx-8">
       {/* Day / night art swap, following the active theme. */}
       <Image
         src="/assets/banner.webp"

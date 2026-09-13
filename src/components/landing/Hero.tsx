@@ -51,31 +51,31 @@ export default function Hero() {
   };
 
   return (
-    <Container className="row-rule row-rule-wide mx-auto p-8 pb-12">
+    <Container className="row-rule row-rule-wide mx-auto px-8 pt-6 pb-8">
       {/* Image */}
-      <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full bg-blue-300 dark:bg-yellow-300">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-blue-300 dark:bg-yellow-300">
         <Image
           src={avatar}
           alt="hero"
           fill
-          sizes="112px"
+          sizes="80px"
           className="origin-center scale-[1.08] object-cover object-center"
         />
       </div>
 
       {/* Text Area */}
-      <div className="mt-8 flex flex-col gap-2">
-        <h1 className="text-4xl font-bold">
+      <div className="mt-5 flex flex-col gap-2">
+        <h1 className="text-2xl font-bold tracking-tight">
           Hi, I&apos;m {name} — <span className="text-secondary">{title}</span>
         </h1>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-base whitespace-pre-wrap text-neutral-500 md:text-lg">
+        <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-2 text-[15px] whitespace-pre-wrap text-neutral-500">
           {renderDescription()}
         </div>
       </div>
 
       {/* Buttons */}
-      <div className="mt-8 flex gap-4">
+      <div className="mt-6 flex gap-3">
         {buttons.map((button, index) => {
           const IconComponent =
             buttonIcons[button.icon as keyof typeof buttonIcons];
@@ -96,8 +96,8 @@ export default function Hero() {
       </div>
 
       {/* Skills Section */}
-      <div className="mt-8 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-        <p className="text-secondary font-bold mb-3">Skills</p>
+      <div className="mt-6 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+        <p className="text-secondary text-[10px] font-bold tracking-[0.2em] uppercase mb-2">Skills</p>
         <div className="flex flex-wrap gap-4">
           {mySkills.map((skill) => (
             <div key={skill.key} className="flex flex-col items-center gap-1.5">
@@ -113,8 +113,8 @@ export default function Hero() {
       </div>
 
       {/* Social Links */}
-      <div className="mt-4 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
-        <p className="text-secondary font-bold mb-3">Connect</p>
+      <div className="mt-3 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+        <p className="text-secondary text-[10px] font-bold tracking-[0.2em] uppercase mb-2">Connect</p>
         <div className="flex flex-wrap gap-2">
           {socialLinks.map((link) => (
             <Tooltip key={link.name} delayDuration={0}>
