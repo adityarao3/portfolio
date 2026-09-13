@@ -100,7 +100,7 @@ export default function Github() {
   }, []);
 
   return (
-    <Container id="github" className="mt-16 scroll-mt-8">
+    <Container id="github" className="row-rule row-rule-wide mt-16 scroll-mt-8 pb-16">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

@@ -128,10 +128,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* Full-bleed rules extend past the viewport; clip at the root so
+       absolutely-positioned children can't open a horizontal scrollbar. */
+    overflow-x: clip;
+  }
   body {
     @apply bg-background text-foreground;
-    /* Full-bleed children use 100vw, which ignores the scrollbar gutter. */
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 }
 
@@ -139,24 +143,36 @@
   @apply text-[#909092] dark:text-[#909092];
 }
 
-/* Dotted grid page background — soft and wide-spaced so it reads as
-   texture rather than noise. */
+/* Page ground is plain; structure comes from rule lines, not texture. */
 .dotted-bg {
   background-color: var(--background);
-  background-image: radial-gradient(
-    circle,
-    rgba(113, 113, 122, 0.35) 1px,
-    transparent 1px
-  );
-  background-size: 16px 16px;
 }
 
-.dark .dotted-bg {
-  background-image: radial-gradient(
-    circle,
-    rgba(161, 161, 170, 0.18) 1px,
-    transparent 1px
-  );
+/* Horizontal rule under a content row. Bleeds past the column edges so it
+   reads as a ruled sheet rather than a boxed border. */
+.row-rule {
+  position: relative;
+}
+
+.row-rule::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -1rem;
+  right: -1rem;
+  height: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.dark .row-rule::after {
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Full-bleed variant for section boundaries. */
+.row-rule-wide::after {
+  left: -100vw;
+  right: -100vw;
 }
 
 /* Content column sits on a solid panel so the grid stays behind the text. */
@@ -170,13 +186,13 @@
   top: 0;
   bottom: 0;
   width: 0;
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.3);
   pointer-events: none;
   z-index: 0;
 }
 
 .dark .page-rule {
-  border-right-color: rgba(255, 255, 255, 0.1);
+  border-right-color: rgba(255, 255, 255, 0.15);
 }
 
 .font-hanken-grotesk {

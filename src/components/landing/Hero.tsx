@@ -51,7 +51,7 @@ export default function Hero() {
   };
 
   return (
-    <Container className="mx-auto rounded-lg border border-gray-200 p-8 dark:border-gray-800">
+    <Container className="row-rule row-rule-wide mx-auto p-8 pb-12">
       {/* Image */}
       <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-full bg-blue-300 dark:bg-yellow-300">
         <Image
