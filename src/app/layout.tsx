@@ -1,7 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/common/ThemeProviders";
-import Navbar from "@/components/common/Navbar";
+import SideIndex from "@/components/common/SideIndex";
 import Footer from "@/components/common/Footer";
 import OnekoCat from "@/components/common/OnekoCat";
 import ReactLenis from "lenis/react";
@@ -62,7 +62,7 @@ export default function RootLayout({
                 className="page-rule left-1/2 hidden translate-x-[384px] md:block"
               />
 
-              <Navbar />
+              <SideIndex />
               {children}
 
               <Footer />

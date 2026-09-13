@@ -7,7 +7,7 @@ import SectionHeading from "../common/SectionHeading";
 
 export default function Achievements() {
   return (
-    <Container className="mt-16">
+    <Container id="achievements" className="mt-16 scroll-mt-8">
       <SectionHeading subHeading="Highlights" heading="Achievements" />
       <div className="mt-6 flex flex-col gap-3">
         {achievements.map((achievement, index) => (

@@ -6,7 +6,9 @@ export default function Banner() {
   return (
     // Sits flush to the top and slightly wider than the text column, so the
     // whole composition stays visible instead of cropping to the viewport.
-    <div className="relative mb-10 h-[32vh] max-h-[340px] min-h-[200px] w-full overflow-hidden">
+    // Negative insets cancel the Container's padding so the art meets the
+    // column edges and sits flush against the top of the page.
+    <div className="relative -mx-4 mb-10 h-[32vh] max-h-[340px] min-h-[200px] overflow-hidden sm:-mx-6 lg:-mx-8">
       {/* Day / night art swap, following the active theme. */}
       <Image
         src="/assets/banner.webp"

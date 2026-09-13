@@ -9,7 +9,7 @@ import { ProjectList } from "../projects/ProjectList";
 
 export default function Projects() {
   return (
-    <Container className="mt-16">
+    <Container id="projects" className="mt-16 scroll-mt-8">
       <SectionHeading subHeading="Featured" heading="Projects" />
       <ProjectList className="mt-8" projects={projects.slice(0, 4)} />
     </Container>

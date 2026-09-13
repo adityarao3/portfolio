@@ -7,7 +7,7 @@ import { ExperienceCard } from "../experience/ExperienceCard";
 
 export default function Experience() {
   return (
-    <Container className="mt-16">
+    <Container id="experience" className="mt-16 scroll-mt-8">
       <SectionHeading subHeading="Featured" heading="Experience" />
       <div className="mt-6 flex flex-col gap-8">
         {experiences.slice(0, 2).map((experience: Experience) => (
