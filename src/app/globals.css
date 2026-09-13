@@ -130,11 +130,40 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Full-bleed children use 100vw, which ignores the scrollbar gutter. */
+    overflow-x: hidden;
   }
 }
 
 .text-secondary {
   @apply text-[#909092] dark:text-[#909092];
+}
+
+/* Dotted grid page background — fine, tight dots. */
+.dotted-bg {
+  background-color: var(--background);
+  background-image: radial-gradient(
+    circle at 0.5px 0.5px,
+    rgba(0, 0, 0, 0.28) 0.5px,
+    transparent 0
+  );
+  background-size: 7px 7px;
+}
+
+.dark .dotted-bg {
+  background-image: radial-gradient(
+    circle at 0.5px 0.5px,
+    rgba(255, 255, 255, 0.22) 0.5px,
+    transparent 0
+  );
+}
+
+/* Solid panel so the dots stay behind the content column, with rule lines
+   flanking it the way the reference layout does. */
+.content-panel {
+  background-color: var(--background);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
 }
 
 .font-hanken-grotesk {

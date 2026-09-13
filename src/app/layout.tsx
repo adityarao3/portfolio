@@ -45,7 +45,7 @@ export default function RootLayout({
   return (
     <ViewTransitions>
       <html lang="en" suppressHydrationWarning>
-        <body className="font-hanken-grotesk antialiased">
+        <body className="font-hanken-grotesk dotted-bg antialiased">
           <ThemeProvider
             attribute="class"
             defaultTheme="system"

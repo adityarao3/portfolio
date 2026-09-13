@@ -5,11 +5,13 @@ import Github from "@/components/landing/Github";
 import Achievements from "@/components/landing/Achievements";
 import { Quote } from "@/components/common/Quote";
 import Container from "@/components/common/Container";
+import Banner from "@/components/common/Banner";
 
 
 export default function Home() {
   return (
-    <Container className="min-h-screen py-16">
+    <Container className="min-h-screen pt-6 pb-16">
+      <Banner />
       <Hero />
       <Experience />
       <Projects />
