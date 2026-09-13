@@ -8,6 +8,23 @@ import { Project } from "@/types/project";
 
 export const projects: Project[] = [
   {
+    title: "Seedhe Maut",
+    description:
+      "Collaborated on a music streaming experience for the hip-hop duo, with a YouTube-powered player, animated CD artwork, scrubbing controls, a live listener count and a looping video stage backdrop.",
+    image: "/project/seedhemaut.webp",
+    link: "https://seedhe-maut-mu.vercel.app/",
+    technologies: [
+      { name: "React", icon: <ReactIcon key="react" /> },
+      { name: "TypeScript", icon: <TypeScript key="typescript" /> },
+      { name: "Vercel", icon: <Vercel key="vercel" /> },
+    ],
+    github: "https://github.com/ankurkharb/SeedheMaut",
+    live: "https://seedhe-maut-mu.vercel.app/",
+    details: false,
+    projectDetailsPageSlug: "#",
+    isWorking: true,
+  },
+  {
     title: "Buildr.ai",
     description:
       "AI-powered website generator that enables full-site creation from natural-language prompts, with a scalable backend using Prisma ORM, PostgreSQL, and role-based access control.",
