@@ -4,8 +4,6 @@ import { Link } from "next-view-transitions";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { ThemeToggleButton } from "./ThemeSwitch";
-
 const sections = [
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
@@ -102,9 +100,6 @@ export default function SideIndex() {
         ))}
       </div>
 
-      <div className="mt-3">
-        <ThemeToggleButton variant="circle" start="top-right" blur />
-      </div>
     </nav>
   );
 }

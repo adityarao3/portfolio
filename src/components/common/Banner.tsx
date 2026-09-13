@@ -4,12 +4,9 @@ import BannerParticles from "./BannerParticles";
 
 export default function Banner() {
   return (
-    // Sits flush to the top and slightly wider than the text column, so the
-    // whole composition stays visible instead of cropping to the viewport.
-    // Negative insets cancel the Container's padding so the art meets the
-    // column edges and sits flush against the top of the page.
-    // bg-background + z-10 keeps the page rules from showing through the art;
-    // they should only be visible below the banner.
+    // Spans the content column, with negative insets cancelling the
+    // Container padding. bg-background + z-10 keep the page rules from
+    // showing through the art; they belong below the banner only.
     <div className="bg-background relative z-10 -mx-4 mb-10 h-[32vh] max-h-[340px] min-h-[200px] overflow-hidden sm:-mx-6 lg:-mx-8">
       {/* Day / night art swap, following the active theme. */}
       <Image
@@ -18,7 +15,7 @@ export default function Banner() {
         fill
         priority
         sizes="(max-width: 768px) 100vw, 768px"
-        className="object-cover object-[30%_center] dark:hidden"
+        className="object-cover object-center dark:hidden"
       />
       <Image
         src="/assets/banner-dark.webp"
@@ -26,7 +23,7 @@ export default function Banner() {
         fill
         priority
         sizes="(max-width: 768px) 100vw, 768px"
-        className="hidden object-cover object-[30%_center] dark:block"
+        className="hidden object-cover object-center dark:block"
       />
 
       <BannerParticles />

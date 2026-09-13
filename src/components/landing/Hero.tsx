@@ -7,6 +7,7 @@ import React from "react";
 
 import Container from "../common/Container";
 import Skill from "../common/Skill";
+import { ThemeToggleButton } from "../common/ThemeSwitch";
 import CV from "../svgs/CV";
 import Chat from "../svgs/Chat";
 import { Button } from "../ui/button";
@@ -52,15 +53,18 @@ export default function Hero() {
 
   return (
     <Container className="row-rule row-rule-wide mx-auto px-8 pt-6 pb-8">
-      {/* Image */}
-      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-blue-300 dark:bg-yellow-300">
-        <Image
-          src={avatar}
-          alt="hero"
-          fill
-          sizes="80px"
-          className="origin-center scale-[1.08] object-cover object-center"
-        />
+      {/* Avatar, with the theme toggle opposite it just under the banner. */}
+      <div className="flex items-start justify-between">
+        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-blue-300 dark:bg-yellow-300">
+          <Image
+            src={avatar}
+            alt="hero"
+            fill
+            sizes="80px"
+            className="object-cover object-top"
+          />
+        </div>
+        <ThemeToggleButton variant="circle" start="top-right" blur />
       </div>
 
       {/* Text Area */}
