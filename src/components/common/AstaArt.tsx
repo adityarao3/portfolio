@@ -1,6 +1,7 @@
 /**
- * Anti-magic artwork filling the left margin, faded into the page: Asta's
- * five-leaf clover painted in dripping red over rising black anti-magic.
+ * Anti-magic artwork filling the right margin behind the index, faded into
+ * the page: Asta's five-leaf clover painted in dripping red over rising
+ * black anti-magic.
  * The images are rendered by scripts/sword/side-art.mjs (one per theme);
  * styles live in globals.css.
  */

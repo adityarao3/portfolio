@@ -399,7 +399,7 @@
   font-size: calc(var(--blog-font-size) * 1.25);
 }
 
-/* ---------- anti-magic art in the left margin ---------- */
+/* ---------- anti-magic art in the right margin, behind the index ---------- */
 /* Original artwork rendered by scripts/sword/side-art.mjs: a painted
    five-leaf clover over rising black anti-magic, one version per theme. */
 :root {
@@ -409,16 +409,16 @@
 .asta-art {
   position: fixed;
   z-index: 0;
-  inset: 0 auto 0 0;
+  inset: 0 0 0 auto;
   width: var(--side-gutter);
   overflow: hidden;
   pointer-events: none;
   -webkit-mask-image:
-    linear-gradient(to right, #000 55%, transparent 97%),
+    linear-gradient(to left, #000 55%, transparent 97%),
     linear-gradient(to bottom, transparent 0, #000 12%, #000 80%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-image:
-    linear-gradient(to right, #000 55%, transparent 97%),
+    linear-gradient(to left, #000 55%, transparent 97%),
     linear-gradient(to bottom, transparent 0, #000 12%, #000 80%, transparent 100%);
   mask-composite: intersect;
 }
@@ -426,12 +426,13 @@
 .asta-art-img {
   position: absolute;
   inset: 0;
-  /* The clover sits at 46% of the art's width; keep it a third of the way
-     into the margin, clear of the sword, at any margin width. */
-  --art-w: max(50vh, calc(var(--side-gutter) * 1.1));
+  /* The clover sits at 46% across and 34% down the art. Scale the art so
+     the clover lands mid-screen, below the index, and 55% of the way
+     across the margin, at any margin width. */
+  --art-w: max(min(70vh, calc(var(--side-gutter) * 1.5)), calc(var(--side-gutter) * 1.1));
   background: url("/assets/side/anti-magic-light.webp") no-repeat;
   background-size: var(--art-w) auto;
-  background-position: calc(var(--side-gutter) * 0.38 - var(--art-w) * 0.46) 30%;
+  background-position: calc(var(--side-gutter) * 0.55 - var(--art-w) * 0.46) 0;
 }
 
 .asta-art-grain {
@@ -455,7 +456,7 @@
   width: var(--sword-t);
   height: var(--sword-l);
   top: calc(50vh - var(--sword-l) / 2);
-  left: calc(var(--side-gutter) - 78px - var(--sword-t) / 2);
+  left: calc(var(--side-gutter) / 2 - var(--sword-t) / 2);
   pointer-events: none;
 }
 
