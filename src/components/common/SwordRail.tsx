@@ -25,15 +25,13 @@ export default function SwordRail() {
   const frontRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLImageElement>(null);
   const bloomRef = useRef<HTMLDivElement>(null);
-  const pctRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const fill = fillRef.current;
     const front = frontRef.current;
     const glow = glowRef.current;
     const bloom = bloomRef.current;
-    const pct = pctRef.current;
-    if (!fill || !front || !glow || !bloom || !pct) return;
+    if (!fill || !front || !glow || !bloom) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const state = { p: 0 };
@@ -84,7 +82,6 @@ export default function SwordRail() {
       front.style.left = `${at}%`;
       front.style.opacity = p > 0.002 && p < 0.995 ? "1" : "0";
       if (!fullTween) bloom.style.opacity = String(restingBloom());
-      pct.textContent = `${Math.round(p * 100)}%`;
       for (const m of marks) {
         const passed = p >= m.p - 0.001;
         if (passed && !m.passed) pulse();
@@ -133,12 +130,6 @@ export default function SwordRail() {
         </div>
         {/* eslint-enable @next/next/no-img-element */}
         <div ref={frontRef} className="sword-front" />
-      </div>
-      <div className="sword-hud">
-        <span className="max-xl:hidden">Anti-magic </span>
-        <span ref={pctRef} className="text-zinc-900 tabular-nums dark:text-zinc-100">
-          0%
-        </span>
       </div>
     </aside>
   );

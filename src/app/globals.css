@@ -532,17 +532,6 @@
   background: radial-gradient(closest-side, rgba(200, 20, 26, 0.38), transparent);
 }
 
-.sword-hud {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 14px);
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #8a8a8a;
-}
 
 /* Without a side margin, the art goes and a slimmer sword rides the left
    edge, with the column nudged over to clear it. */
@@ -556,13 +545,6 @@
     left: calc(26px - var(--sword-t) / 2);
     top: calc(52vh - var(--sword-l) / 2);
   }
-
-  .sword-hud {
-    top: auto;
-    bottom: calc(100% + 10px);
-    font-size: 10px;
-  }
-
 }
 
 @media (max-width: 899px) {
