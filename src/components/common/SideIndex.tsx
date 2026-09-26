@@ -55,11 +55,11 @@ export default function SideIndex() {
   return (
     <nav
       aria-label="Page index"
-      className={`pointer-events-auto z-20 gap-3 max-lg:sticky max-lg:top-0 max-lg:flex max-lg:overflow-x-auto max-lg:border-b max-lg:border-black/10 max-lg:bg-[var(--background)]/90 max-lg:px-4 max-lg:py-3 max-lg:backdrop-blur-sm lg:fixed lg:left-[calc(50%+400px)] lg:flex lg:w-[150px] lg:flex-col lg:border-0 lg:bg-transparent lg:px-0 lg:py-0 dark:max-lg:border-white/10 ${
-        isHome ? "lg:top-[22vh]" : "lg:top-16"
+      className={`pointer-events-auto z-20 gap-3 max-[1179px]:sticky max-[1179px]:top-0 max-[1179px]:flex max-[1179px]:overflow-x-auto max-[1179px]:border-b max-[1179px]:border-black/10 max-[1179px]:bg-[var(--background)]/90 max-[1179px]:px-4 max-[1179px]:py-3 max-[1179px]:backdrop-blur-sm min-[1180px]:fixed min-[1180px]:left-[calc(50%+400px)] min-[1180px]:flex min-[1180px]:w-[150px] min-[1180px]:flex-col min-[1180px]:border-0 min-[1180px]:bg-transparent min-[1180px]:px-0 min-[1180px]:py-0 dark:max-[1179px]:border-white/10 ${
+        isHome ? "min-[1180px]:top-[22vh]" : "min-[1180px]:top-16"
       }`}
     >
-      <h3 className="mb-1 hidden text-[10px] font-bold tracking-[0.2em] text-red-600 uppercase lg:block dark:text-red-500">
+      <h3 className="mb-1 hidden text-[10px] font-bold tracking-[0.2em] text-red-600 uppercase min-[1180px]:block dark:text-red-500">
         Index
       </h3>
 
@@ -77,7 +77,7 @@ export default function SideIndex() {
           }`}
         >
           <span
-            className={`hidden h-px transition-all duration-300 ease-out lg:block ${
+            className={`hidden h-px transition-all duration-300 ease-out min-[1180px]:block ${
               active === s.id ? "w-4 bg-current" : "w-0 bg-transparent"
             }`}
           />
