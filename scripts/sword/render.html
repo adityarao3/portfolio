@@ -207,7 +207,7 @@ function crackTree(x, y, ang, len, depth, out) {
   }
   out.push({ pts, depth });
 }
-function drawCracks(g) {
+function drawCracks(g, glow) {
   const cracks = [];
   const seeds = [
     [1180, 470, -0.15, 260], [1560, 560, 0.1, 340], [1990, 470, 0.25, 300], [2350, 545, -0.2, 380],
@@ -215,11 +215,15 @@ function drawCracks(g) {
     [2600, 590, 3.3, 160], [3000, 430, 2.8, 140],
   ];
   for (const [x, y, a, l] of seeds) crackTree(x, y, a, l, 0, cracks);
-  const stroke = (pts) => { g.beginPath(); g.moveTo(...pts[0]); for (const p of pts) g.lineTo(...p); };
+  let stroke = (pts) => { g.beginPath(); g.moveTo(...pts[0]); for (const p of pts) g.lineTo(...p); };
   g.lineJoin = "round"; g.lineCap = "round";
   // fissure (dark cut)
   for (const c of cracks) { stroke(c.pts); g.strokeStyle = "rgba(0,0,0,0.9)"; g.lineWidth = 4.5 - c.depth; g.stroke(); }
+  // everything below is emissive and goes on its own layer
+  g = glow;
+  stroke = (pts) => { g.beginPath(); g.moveTo(...pts[0]); for (const p of pts) g.lineTo(...p); };
   g.save(); g.globalCompositeOperation = "lighter";
+  g.lineJoin = "round"; g.lineCap = "round";
   // wide soft glow
   g.filter = "blur(14px)";
   for (const c of cracks) { stroke(c.pts); g.strokeStyle = "rgba(200,10,15,0.32)"; g.lineWidth = 16 - c.depth * 3; g.stroke(); }
@@ -248,16 +252,19 @@ function drawBlade() {
     g.beginPath(); g.moveTo(x, y); g.lineTo(x + R(30, 140), y + R(-2, 2));
     g.strokeStyle = `rgba(200,200,210,${R(0.04, 0.14)})`; g.lineWidth = R(0.5, 1); g.stroke();
   }
-  drawCracks(g);
+  const [gc, glow] = layer();
+  glow.save(); glow.clip(bladePath);
+  drawCracks(g, glow);
   // faint crimson inner haze
-  g.globalCompositeOperation = "lighter";
+  glow.globalCompositeOperation = "lighter";
   for (let i = 0; i < 9; i++) {
     const x = R(1200, 3600), y = CY + R(-60, 60), r = R(90, 200);
     const gr = g.createRadialGradient(x, y, 0, x, y, r);
     gr.addColorStop(0, "rgba(120,0,8,0.12)"); gr.addColorStop(1, "rgba(120,0,8,0)");
-    g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    glow.fillStyle = gr; glow.fillRect(x - r, y - r, 2 * r, 2 * r);
   }
-  g.globalCompositeOperation = "source-over";
+  glow.restore();
+  LAYERS.glow = gc;
   // shading near the guard (occlusion)
   const occ = g.createLinearGradient(BLADE.x0, 0, BLADE.x0 + 120, 0);
   occ.addColorStop(0, "rgba(0,0,0,0.7)"); occ.addColorStop(1, "rgba(0,0,0,0)");
@@ -557,16 +564,29 @@ function drawEmbers(g) {
   g.restore();
 }
 
+// Separate layers so a page can animate them independently:
+//   base  - the sword itself plus smoke (no emissive light)
+//   glow  - crimson crack light, already clipped to the blade
+//   fx    - floating debris and embers
+const LAYERS = {};
 function render() {
+  const [base, b] = layer();
+  drawSmoke(b, false);
+  b.drawImage(drawBlade(), 0, 0);
+  drawGrip(b);
+  drawPommel(b);
+  drawGuard(b);
+  drawSmoke(b, true);
+  const [fx, f] = layer();
+  drawDebris(f);
+  drawEmbers(f);
+  LAYERS.base = base; LAYERS.fx = fx;
+  // flattened asset
   ctx.clearRect(0, 0, W, H);
-  drawSmoke(ctx, false);
-  ctx.drawImage(drawBlade(), 0, 0);
-  drawGrip(ctx);
-  drawPommel(ctx);
-  drawGuard(ctx);
-  drawSmoke(ctx, true);
-  drawDebris(ctx);
-  drawEmbers(ctx);
+  ctx.drawImage(base, 0, 0);
+  ctx.globalCompositeOperation = "lighter"; ctx.drawImage(LAYERS.glow, 0, 0);
+  ctx.globalCompositeOperation = "source-over"; ctx.drawImage(fx, 0, 0);
+  LAYERS.full = canvas;
 }
 window.renderSword = () => { render(); return true; };
 </script>

@@ -15,9 +15,9 @@ page.on("pageerror", (e) => { console.error(e); process.exit(1); });
 await page.goto(pathToFileURL(resolve(here, "render.html")).href);
 await page.evaluate(() => window.renderSword());
 
-const grab = (type, q, scale) =>
-  page.evaluate(([type, q, scale]) => {
-    const src = document.getElementById("c");
+const grab = (type, q, scale, name = "full") =>
+  page.evaluate(([type, q, scale, name]) => {
+    const src = LAYERS[name];
     let c = src;
     if (scale !== 1) {
       c = document.createElement("canvas");
@@ -27,7 +27,7 @@ const grab = (type, q, scale) =>
       g.drawImage(src, 0, 0, c.width, c.height);
     }
     return c.toDataURL(type, q);
-  }, [type, q, scale]);
+  }, [type, q, scale, name]);
 
 const save = (name, url) => {
   const buf = Buffer.from(url.split(",")[1], "base64");
@@ -37,4 +37,8 @@ const save = (name, url) => {
 save("demon-slayer-sword-4k.png", await grab("image/png", undefined, 1));
 save("demon-slayer-sword-4k.webp", await grab("image/webp", 0.9, 1));
 save("demon-slayer-sword-2k.webp", await grab("image/webp", 0.9, 0.5));
+for (const name of ["base", "glow", "fx"]) {
+  save(`sword-${name}-4k.webp`, await grab("image/webp", 0.9, 1, name));
+  save(`sword-${name}-2k.webp`, await grab("image/webp", 0.9, 0.5, name));
+}
 await browser.close();
