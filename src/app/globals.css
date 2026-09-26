@@ -448,15 +448,18 @@
 }
 
 /* ---------- sword scroll meter ---------- */
+/* Placed like a scrollbar hung beside the column: about half the screen
+   tall, starting a fifth of the way down, its centre 55px off the
+   column's left rule. */
 .sword-rail {
-  --sword-l: min(82vh, 780px);
+  --sword-l: min(52vh, 560px);
   --sword-t: calc(var(--sword-l) / 4);
   position: fixed;
   z-index: 10;
   width: var(--sword-t);
   height: var(--sword-l);
-  top: calc(50vh - var(--sword-l) / 2);
-  left: calc(var(--side-gutter) / 2 - var(--sword-t) / 2);
+  top: 20vh;
+  left: calc(var(--side-gutter) - 55px - var(--sword-t) / 2);
   pointer-events: none;
 }
 
