@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/common/ThemeProviders";
 import SideIndex from "@/components/common/SideIndex";
 import Footer from "@/components/common/Footer";
-import RunnerPet from "@/components/common/RunnerPet";
 import AstaArt from "@/components/common/AstaArt";
 import SwordRail from "@/components/common/SwordRail";
 import ReactLenis from "lenis/react";
@@ -86,7 +85,6 @@ export default function RootLayout({
               <Footer />
             </ReactLenis>
           </ThemeProvider>
-          <RunnerPet />
         </body>
       </html>
     </ViewTransitions>
