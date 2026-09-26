@@ -1,0 +1,253 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Side art renderer</title></head>
+<body style="margin:0;background:#222">
+<canvas id="c" width="1000" height="2000"></canvas>
+<script>
+/*
+ * Procedural artwork for the left margin: Asta's five-leaf clover daubed
+ * in dripping red, black anti-magic rising beneath it, ink-wash clouds,
+ * manga speed lines and halftone. Two palettes share one layout:
+ *   dark  - red wash sky, black ink, glowing crimson brand
+ *   light - paper, grey ink wash, crimson brand
+ * Run via scripts/sword/side-art.mjs.
+ */
+const W = 1000, H = 2000;
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hash2(x, y) {
+  let h = (x * 374761393 + y * 668265263) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash2(xi, yi), b = hash2(xi + 1, yi), c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, oct = 5) {
+  let s = 0, amp = 0.5, f = 1, n = 0;
+  for (let i = 0; i < oct; i++) { s += amp * vnoise(x * f, y * f); n += amp; amp *= 0.5; f *= 2.03; }
+  return s / n;
+}
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+const mix = (a, b, t) => a + (b - a) * t;
+
+const PALETTES = {
+  dark: {
+    skyTop: [18, 3, 4], skyGlow: [150, 16, 22], skyLow: [40, 5, 7],
+    cloudInk: [8, 3, 3], cloudAlpha: 0.85,
+    ink: "#050505", inkRim: "rgba(255,40,30,0.55)", inkWash: "rgba(0,0,0,0.5)",
+    brand: "#d8141c", brandGlow: "rgba(255,30,25,0.5)",
+    lines: "rgba(0,0,0,0.28)", dots: "rgba(0,0,0,0.45)",
+  },
+  light: {
+    skyTop: [250, 247, 244], skyGlow: [246, 214, 210], skyLow: [238, 234, 230],
+    cloudInk: [60, 58, 58], cloudAlpha: 0.32,
+    ink: "#101010", inkRim: null, inkWash: "rgba(0,0,0,0.18)",
+    brand: "#c3141c", brandGlow: null,
+    lines: "rgba(0,0,0,0.10)", dots: "rgba(0,0,0,0.30)",
+  },
+};
+
+// Composition anchors
+const BRAND = { x: 0.46 * W, y: 0.34 * H, s: 0.2 * W };
+
+function sky(g, P) {
+  const img = g.createImageData(W, H), d = img.data;
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      const ny = y / H;
+      // glow behind the brand
+      const dx = (x - BRAND.x) / W, dy = (y - BRAND.y) / H;
+      const glow = Math.exp(-(dx * dx * 3.2 + dy * dy * 9));
+      let r = mix(mix(P.skyTop[0], P.skyLow[0], ny), P.skyGlow[0], glow);
+      let gg = mix(mix(P.skyTop[1], P.skyLow[1], ny), P.skyGlow[1], glow);
+      let b = mix(mix(P.skyTop[2], P.skyLow[2], ny), P.skyGlow[2], glow);
+      // ink-wash clouds, stretched sideways
+      const c = fbm(x / 300 + 11, y / 170, 5);
+      const cloud = smooth(0.5, 0.66, c) * P.cloudAlpha * (0.55 + 0.45 * smooth(0.15, 0.6, ny));
+      r = mix(r, P.cloudInk[0], cloud); gg = mix(gg, P.cloudInk[1], cloud); b = mix(b, P.cloudInk[2], cloud);
+      // paper / film grain
+      const n = (hash2(x, y) - 0.5) * 10;
+      const k = (y * W + x) * 4;
+      d[k] = clamp((r + n) / 255) * 255; d[k + 1] = clamp((gg + n) / 255) * 255; d[k + 2] = clamp((b + n) / 255) * 255; d[k + 3] = 255;
+    }
+  }
+  g.putImageData(img, 0, 0);
+}
+
+function speedLines(g, P, rand) {
+  g.save();
+  g.strokeStyle = P.lines;
+  for (let i = 0; i < 220; i++) {
+    const a = rand() * Math.PI * 2;
+    const r0 = BRAND.s * (1.6 + rand() * 1.4), r1 = r0 + 300 + rand() * 900;
+    g.lineWidth = 0.6 + rand() * 2.2;
+    g.beginPath();
+    g.moveTo(BRAND.x + Math.cos(a) * r0, BRAND.y + Math.sin(a) * r0);
+    g.lineTo(BRAND.x + Math.cos(a) * r1, BRAND.y + Math.sin(a) * r1);
+    g.stroke();
+  }
+  g.restore();
+}
+
+function halftone(g, P) {
+  g.save();
+  g.fillStyle = P.dots;
+  const step = 11;
+  for (let y = 0; y < H * 0.3; y += step) {
+    for (let x = (y / step) % 2 ? step / 2 : 0; x < W; x += step) {
+      // dots gather in the upper-left corner and thin out toward the brand
+      const t = clamp(1 - Math.hypot(x / W, (y / H) * 2.2) * 1.05);
+      const r = t * t * step * 0.55 * (0.7 + 0.6 * vnoise(x / 60, y / 60));
+      if (r > 0.4) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
+    }
+  }
+  g.restore();
+}
+
+// Black anti-magic: tapered ink tendrils rising from the ground.
+function antiMagic(g, P, rand) {
+  const tendrils = [];
+  for (let i = 0; i < 24; i++) {
+    const x0 = W * (0.04 + 0.92 * rand());
+    const centre = 1 - Math.abs(x0 / W - 0.5) * 1.4;           // taller in the middle
+    const height = H * (0.16 + 0.4 * rand() * centre + 0.1);
+    const base = 90 + 150 * rand() * (0.5 + centre);
+    const freq = 1.2 + rand() * 1.6, ph = rand() * 6.28, amp = 20 + rand() * 60;
+    const lean = (rand() - 0.5) * 260;
+    const L = [], Rr = [];
+    const steps = 60;
+    for (let s = 0; s <= steps; s++) {
+      const t = s / steps;
+      const y = H + 40 - t * height;
+      const x = x0 + Math.sin(ph + t * freq * 3.2) * amp * t + lean * t * t * t + (vnoise(i * 7, t * 6) - 0.5) * 50 * t;
+      const w = base * Math.pow(1 - t, 1.9) * (0.85 + 0.3 * vnoise(i * 3, t * 9)) + 1.2;
+      L.push([x - w / 2, y]); Rr.push([x + w / 2, y]);
+    }
+    tendrils.push([...L, ...Rr.reverse()]);
+  }
+  const path = (pts) => { g.beginPath(); g.moveTo(...pts[0]); for (const p of pts) g.lineTo(...p); g.closePath(); };
+  // soft wash behind
+  g.save(); g.filter = "blur(26px)"; g.fillStyle = P.inkWash;
+  for (const t of tendrils) { path(t); g.fill(); }
+  g.restore();
+  // hot crimson rims (dark palette only)
+  if (P.inkRim) {
+    g.save(); g.filter = "blur(6px)"; g.strokeStyle = P.inkRim; g.lineWidth = 6; g.globalCompositeOperation = "lighter";
+    for (const t of tendrils) { path(t); g.stroke(); }
+    g.restore();
+  }
+  g.fillStyle = P.ink;
+  for (const t of tendrils) { path(t); g.fill(); }
+  // ground mass
+  const gr = g.createLinearGradient(0, H * 0.74, 0, H);
+  gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(0.45, P.ink); gr.addColorStop(1, P.ink);
+  g.fillStyle = gr; g.fillRect(0, H * 0.74, W, H * 0.26);
+}
+
+function leafPath(s, rot, cx, cy, narrow = 1) {
+  const c = Math.cos(rot), n = Math.sin(rot);
+  const T = (x, y) => [cx + x * narrow * c - y * n, cy + x * narrow * n + y * c];
+  const p = new Path2D();
+  p.moveTo(...T(0, 0));
+  p.bezierCurveTo(...T(-0.12 * s, -0.25 * s), ...T(-0.78 * s, -0.42 * s), ...T(-0.6 * s, -0.86 * s));
+  p.bezierCurveTo(...T(-0.45 * s, -1.18 * s), ...T(-0.06 * s, -1.12 * s), ...T(0, -0.82 * s));
+  p.bezierCurveTo(...T(0.06 * s, -1.12 * s), ...T(0.45 * s, -1.18 * s), ...T(0.6 * s, -0.86 * s));
+  p.bezierCurveTo(...T(0.78 * s, -0.42 * s), ...T(0.12 * s, -0.25 * s), ...T(0, 0));
+  return p;
+}
+
+// Five-leaf clover in dripping brush paint.
+function brand(g, P, rand) {
+  const { x, y, s } = BRAND;
+  const [c, b] = (() => { const cv = document.createElement("canvas"); cv.width = W; cv.height = H; return [cv, cv.getContext("2d")]; })();
+  // each leaf pushed out from the centre so the five hearts stand apart
+  const leaves = Array.from({ length: 5 }, (_, i) => {
+    const a = (i * 2 * Math.PI) / 5;
+    return leafPath(s, a, x + Math.sin(a) * s * 0.1, y - Math.cos(a) * s * 0.1, 0.66);
+  });
+  b.strokeStyle = P.brand; b.fillStyle = P.brand; b.lineCap = "round"; b.lineJoin = "round";
+  // painted leaves: solid body plus jittered bristle strokes on the rim
+  for (const L of leaves) b.fill(L);
+  for (let pass = 0; pass < 14; pass++) {
+    b.save();
+    b.translate((rand() - 0.5) * 6, (rand() - 0.5) * 6);
+    b.lineWidth = 2 + rand() * 5;
+    b.globalAlpha = 0.3 + rand() * 0.5;
+    if (rand() < 0.5) b.setLineDash([30 + rand() * 160, 4 + rand() * 26]);
+    for (const L of leaves) b.stroke(L);
+    b.restore();
+  }
+  b.globalAlpha = 1;
+  // a vein scratched into each leaf
+  b.save(); b.globalCompositeOperation = "destination-out"; b.lineCap = "round"; b.strokeStyle = "#000";
+  for (let i = 0; i < 5; i++) {
+    const v = (i * 2 * Math.PI) / 5;                      // centre vein of a leaf
+    b.lineWidth = 2.5;
+    b.beginPath(); b.moveTo(x + Math.sin(v) * s * 0.34, y - Math.cos(v) * s * 0.25); b.lineTo(x + Math.sin(v) * s * 0.72, y - Math.cos(v) * s * 0.72); b.stroke();
+  }
+  b.beginPath(); b.arc(x, y, s * 0.13, 0, Math.PI * 2); b.lineWidth = 5; b.stroke();
+  b.restore();
+  // paint runs from the lower leaves; the stem runs longest
+  const drips = [
+    [-0.55, 0.62, 0.28, 8], [-0.3, 0.9, 0.5, 11], [0.02, 1.0, 1.35, 15], [0.28, 0.92, 0.62, 9],
+    [0.55, 0.64, 0.33, 7], [0.82, 0.3, 0.2, 6], [-0.8, 0.3, 0.16, 5], [0.12, 0.98, 0.9, 6],
+  ];
+  for (const [ox, oy, len, w] of drips) {
+    const x0 = x + ox * s, y0 = y + oy * s, y1 = y0 + len * s * 2.2;
+    const gr = b.createLinearGradient(0, y0, 0, y1);
+    gr.addColorStop(0, P.brand); gr.addColorStop(1, P.brand);
+    b.strokeStyle = gr; b.lineWidth = w; b.lineCap = "round";
+    b.beginPath(); b.moveTo(x0, y0);
+    b.bezierCurveTo(x0 + 2, mix(y0, y1, 0.4), x0 - 2, mix(y0, y1, 0.7), x0 + 1, y1); b.stroke();
+    b.beginPath(); b.ellipse(x0 + 1, y1 + w * 0.3, w * 0.8, w * 1.05, 0, 0, Math.PI * 2); b.fill();
+  }
+  // splatter
+  for (let i = 0; i < 70; i++) {
+    const a = rand() * Math.PI * 2, r = s * (1.05 + rand() * 0.9);
+    const rr = (rand() ** 2.5) * 9 + 1;
+    b.beginPath(); b.arc(x + Math.cos(a) * r, y + Math.sin(a) * r * 1.1, rr, 0, Math.PI * 2); b.fill();
+  }
+  // dry-brush gaps: knock holes where streaky noise is high
+  const img = b.getImageData(0, 0, W, H), d = img.data;
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const k = (py * W + px) * 4 + 3;
+    if (!d[k]) continue;
+    const streak = vnoise(px / 3, py / 3) * 0.5 + vnoise(px / 40, py / 9) * 0.5;
+    d[k] = d[k] * smooth(0.8, 0.64, streak);
+  }
+  b.putImageData(img, 0, 0);
+  // glow (dark palette)
+  if (P.brandGlow) {
+    g.save(); g.filter = "blur(30px)"; g.globalCompositeOperation = "lighter"; g.globalAlpha = 0.25;
+    g.drawImage(c, 0, 0); g.restore();
+  }
+  g.drawImage(c, 0, 0);
+}
+
+window.renderSide = (mode) => {
+  const P = PALETTES[mode];
+  const rand = mulberry32(2024);
+  const cv = document.getElementById("c"), g = cv.getContext("2d");
+  g.clearRect(0, 0, W, H);
+  sky(g, P);
+  speedLines(g, P, rand);
+  halftone(g, P);
+  antiMagic(g, P, rand);
+  brand(g, P, rand);
+  return cv.toDataURL("image/webp", 0.9);
+};
+</script>
+</body>
+</html>
