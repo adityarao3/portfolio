@@ -565,27 +565,36 @@ function drawEmbers(g) {
 }
 
 // Separate layers so a page can animate them independently:
-//   base  - the sword itself plus smoke (no emissive light)
+//   base  - the sword itself (no smoke, no emissive light)
+//   smoke - edge smoke wisps
 //   glow  - crimson crack light, already clipped to the blade
 //   fx    - floating debris and embers
 const LAYERS = {};
 function render() {
   const [base, b] = layer();
-  drawSmoke(b, false);
+  const [smokeBack, sb] = layer();
+  const [smokeFront, sf] = layer();
+  drawSmoke(sb, false);
   b.drawImage(drawBlade(), 0, 0);
   drawGrip(b);
   drawPommel(b);
   drawGuard(b);
-  drawSmoke(b, true);
+  drawSmoke(sf, true);
+  const [smoke, sm] = layer();
+  sm.drawImage(smokeBack, 0, 0); sm.drawImage(smokeFront, 0, 0);
+  LAYERS.smoke = smoke;
   const [fx, f] = layer();
   drawDebris(f);
   drawEmbers(f);
   LAYERS.base = base; LAYERS.fx = fx;
   // flattened asset
   ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(smokeBack, 0, 0);
   ctx.drawImage(base, 0, 0);
   ctx.globalCompositeOperation = "lighter"; ctx.drawImage(LAYERS.glow, 0, 0);
-  ctx.globalCompositeOperation = "source-over"; ctx.drawImage(fx, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.drawImage(smokeFront, 0, 0);
+  ctx.drawImage(fx, 0, 0);
   LAYERS.full = canvas;
 }
 window.renderSword = () => { render(); return true; };

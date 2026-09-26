@@ -37,7 +37,7 @@ const save = (name, url) => {
 save("demon-slayer-sword-4k.png", await grab("image/png", undefined, 1));
 save("demon-slayer-sword-4k.webp", await grab("image/webp", 0.9, 1));
 save("demon-slayer-sword-2k.webp", await grab("image/webp", 0.9, 0.5));
-for (const name of ["base", "glow", "fx"]) {
+for (const name of ["base", "glow", "fx", "smoke"]) {
   save(`sword-${name}-4k.webp`, await grab("image/webp", 0.9, 1, name));
   save(`sword-${name}-2k.webp`, await grab("image/webp", 0.9, 0.5, name));
 }
