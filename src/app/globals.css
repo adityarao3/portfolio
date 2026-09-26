@@ -398,3 +398,157 @@
 .prose h4 {
   font-size: calc(var(--blog-font-size) * 1.25);
 }
+
+/* ---------- anti-magic art in the right margin, behind the index ---------- */
+/* Original artwork rendered by scripts/sword/side-art.mjs: a painted
+   five-leaf clover over rising black anti-magic, one version per theme. */
+:root {
+  --side-gutter: calc((100vw - 768px) / 2);
+}
+
+.asta-art {
+  position: fixed;
+  z-index: 0;
+  inset: 0 0 0 auto;
+  width: var(--side-gutter);
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image:
+    linear-gradient(to left, #000 55%, transparent 97%),
+    linear-gradient(to bottom, transparent 0, #000 12%, #000 80%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to left, #000 55%, transparent 97%),
+    linear-gradient(to bottom, transparent 0, #000 12%, #000 80%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.asta-art-img {
+  position: absolute;
+  inset: 0;
+  /* The clover sits at 46% across and 34% down the art. Scale the art so
+     the clover lands mid-screen, below the index, and 55% of the way
+     across the margin, at any margin width. */
+  --art-w: max(min(70vh, calc(var(--side-gutter) * 1.5)), calc(var(--side-gutter) * 1.1));
+  background: url("/assets/side/anti-magic-light.webp") no-repeat;
+  background-size: var(--art-w) auto;
+  background-position: calc(var(--side-gutter) * 0.55 - var(--art-w) * 0.46) 0;
+}
+
+.asta-art-grain {
+  position: absolute;
+  inset: -50%;
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+.dark .asta-art-img {
+  background-image: url("/assets/side/anti-magic-dark.webp");
+}
+
+/* ---------- sword scroll meter ---------- */
+/* Placed like a scrollbar hung beside the column: about half the screen
+   tall, starting a fifth of the way down, its centre 55px off the
+   column's left rule. */
+.sword-rail {
+  --sword-l: min(52vh, 560px);
+  --sword-t: calc(var(--sword-l) / 4);
+  position: fixed;
+  z-index: 10;
+  width: var(--sword-t);
+  height: var(--sword-l);
+  top: 20vh;
+  left: calc(var(--side-gutter) - 55px - var(--sword-t) / 2);
+  pointer-events: none;
+}
+
+/* Horizontal art (hilt left) turned to stand hilt-up. */
+.sword-spin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--sword-l);
+  height: var(--sword-t);
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.sword-spin img,
+.sword-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+.sword-fill {
+  clip-path: inset(0 78% 0 0);
+}
+
+.sword-smoke {
+  opacity: 0.28;
+}
+
+.sword-base {
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.4)) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
+}
+
+.dark .sword-smoke {
+  opacity: 0.9;
+}
+
+.dark .sword-base {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.35)) drop-shadow(0 0 10px rgba(255, 255, 255, 0.07));
+}
+
+/* Hot edge riding the front of the fill. */
+.sword-front {
+  position: absolute;
+  top: 31%;
+  height: 38%;
+  width: 3px;
+  left: 22%;
+  opacity: 0;
+  border-radius: 3px;
+  background: linear-gradient(transparent, #ff5a3c 30%, #fff1e6 50%, #ff5a3c 70%, transparent);
+  box-shadow: 0 0 14px 3px rgba(255, 40, 30, 0.55);
+}
+
+.sword-bloom {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: calc(var(--sword-t) * 2.6);
+  height: calc(var(--sword-l) * 0.9);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(215, 38, 45, 0.2), transparent);
+  filter: blur(18px);
+  opacity: 0.2;
+}
+
+.dark .sword-bloom {
+  background: radial-gradient(closest-side, rgba(200, 20, 26, 0.38), transparent);
+}
+
+
+/* Without a side margin, the art goes and a slimmer sword rides the left
+   edge, with the column nudged over to clear it. */
+@media (max-width: 1179px) {
+  .asta-art {
+    display: none;
+  }
+
+  .sword-rail {
+    --sword-l: min(64vh, 560px);
+    left: calc(26px - var(--sword-t) / 2);
+    top: calc(52vh - var(--sword-l) / 2);
+  }
+}
+
+@media (max-width: 899px) {
+  .content-panel {
+    padding-left: 60px;
+  }
+}

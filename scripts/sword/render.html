@@ -1,0 +1,603 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Sword renderer</title></head>
+<body style="margin:0;background:#111">
+<canvas id="c" width="4096" height="1024"></canvas>
+<script>
+/*
+ * Procedural renderer for the Demon-Slayer sword asset.
+ * Everything is drawn on a transparent 4096x1024 canvas: hilt left,
+ * blade pointing right, sword spanning ~95% of the width.
+ * Run via scripts/sword/render.mjs (headless Chromium).
+ */
+const W = 4096, H = 1024, CY = 512;
+
+// ---------- seeded helpers ----------
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(1337);
+const R = (a, b) => a + (b - a) * rand();
+const RI = (a, b) => Math.floor(R(a, b + 1));
+
+function hash2(x, y) {
+  let h = (x * 374761393 + y * 668265263) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y);
+  const xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash2(xi, yi), b = hash2(xi + 1, yi);
+  const c = hash2(xi, yi + 1), d = hash2(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, oct = 5) {
+  let s = 0, amp = 0.5, f = 1, n = 0;
+  for (let i = 0; i < oct; i++) { s += amp * vnoise(x * f, y * f); n += amp; amp *= 0.5; f *= 2.03; }
+  return s / n;
+}
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+function layer() { const c = document.createElement("canvas"); c.width = W; c.height = H; return [c, c.getContext("2d")]; }
+
+// ---------- geometry ----------
+const POMMEL = { x: 205, y: CY, r: 104 };
+const GRIP = { x0: 300, x1: 800, h: 50 };
+const GUARD = { x: 872, y: CY };
+const BLADE = { x0: 900, x1: 3992, tipBottom: 3842 };
+const halfH = (x) => 150 + 14 * smooth(BLADE.x0, BLADE.x1, x); // blade gently widens
+
+// Build blade outline with chips/notches.
+function edgePoints(xStart, xEnd, sideSign, step = 6) {
+  // sideSign -1 = top edge, +1 = bottom edge
+  const pts = [];
+  const chips = [];
+  let x = xStart + R(80, 220);
+  while (x < xEnd - 120) {
+    chips.push({ x, w: R(10, 60), d: R(4, 26), skew: R(-0.4, 0.4) });
+    x += R(90, 420);
+  }
+  for (let x = xStart; x <= xEnd; x += step) {
+    let off = (vnoise(x / 23, sideSign * 50) - 0.5) * 3; // micro roughness
+    for (const c of chips) {
+      const t = (x - c.x) / c.w;
+      if (t > -1 && t < 1) {
+        const tt = t + c.skew * (1 - Math.abs(t));
+        off += c.d * Math.max(0, 1 - Math.abs(tt)) ** 0.8 * (0.8 + 0.4 * vnoise(x / 3, c.x));
+      }
+    }
+    pts.push([x, CY + sideSign * (halfH(x) - off)]);
+  }
+  return pts;
+}
+const topPts = edgePoints(BLADE.x0, BLADE.x1 - 4, -1);
+const botPts = edgePoints(BLADE.x0, BLADE.tipBottom, +1);
+// Chisel tip: top corner slightly clipped, long slant to the bottom
+const tipTop = [BLADE.x1, CY - halfH(BLADE.x1) + 18];
+const tipPts = [];
+{
+  const [ax, ay] = tipTop, bx = BLADE.tipBottom, by = CY + halfH(bx);
+  for (let i = 0; i <= 40; i++) {
+    const t = i / 40;
+    let x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+    // a couple of chips along the slant
+    const chip = (c, w, d) => Math.max(0, 1 - Math.abs(t - c) / w) * d;
+    x -= chip(0.33, 0.05, 16) + chip(0.71, 0.035, 10);
+    x += (vnoise(t * 30, 9) - 0.5) * 3;
+    tipPts.push([x, y]);
+  }
+}
+const bladePath = new Path2D();
+{
+  bladePath.moveTo(...topPts[0]);
+  for (const p of topPts) bladePath.lineTo(...p);
+  bladePath.lineTo(BLADE.x1 - 22, CY - halfH(BLADE.x1));
+  for (const p of tipPts) bladePath.lineTo(...p);
+  for (let i = botPts.length - 1; i >= 0; i--) bladePath.lineTo(...botPts[i]);
+  bladePath.closePath();
+}
+
+// ---------- blade surface (per-pixel) ----------
+function bladeTexture() {
+  const [c, g] = layer();
+  const x0 = BLADE.x0 - 4, y0 = CY - 180, w = BLADE.x1 - x0 + 4, h = 360;
+  const img = g.createImageData(w, h);
+  const d = img.data;
+  for (let j = 0; j < h; j++) {
+    const y = y0 + j;
+    for (let i = 0; i < w; i++) {
+      const x = x0 + i;
+      const hh = halfH(x);
+      const v = (y - CY) / hh; // -1 top .. 1 bottom
+      let L = 0.085;
+      L += (fbm(x / 210, y / 210, 4) - 0.5) * 0.07;         // forged mottling
+      L += (vnoise(x / 520, y / 3.5) - 0.5) * 0.022;         // brushed / hammered streaks
+      L += (vnoise(x / 38, y / 38) - 0.5) * 0.03;           // hammer pits
+      L += (hash2(x, y) - 0.5) * 0.028;                      // grain
+      L -= v * 0.025;                                        // lit from above
+      // broad soft sheen band
+      L += Math.exp(-((v + 0.42) ** 2) / 0.03) * 0.035 * (0.6 + 0.8 * fbm(x / 300, 3, 3));
+      // edge bevels (ground edges catch more light)
+      const av = Math.abs(v);
+      const bev = smooth(0.8, 0.9, av);
+      if (v < 0) L += bev * (0.075 + 0.04 * vnoise(x / 60, 1));
+      else L += bev * (0.02 - 0.05 * smooth(0.9, 0.97, av)) + smooth(0.96, 1.0, av) * 0.06;
+      // bevel shoulder line
+      L -= Math.exp(-((av - 0.8) ** 2) / 0.0006) * 0.035;
+      // central fuller groove
+      if (x > 1010 && x < 3380) {
+        const fade = smooth(1010, 1090, x) * (1 - smooth(3300, 3380, x));
+        const gv = Math.abs(v - 0.02);
+        L -= fade * smooth(0.16, 0.1, gv) * 0.04;
+        L += fade * Math.exp(-((v + 0.15) ** 2) / 0.0004) * 0.05; // lower lip catches light
+        L -= fade * Math.exp(-((v - 0.16) ** 2) / 0.0004) * 0.03;
+      }
+      // weathering / oxidised patches
+      const rust = smooth(0.58, 0.75, fbm(x / 160 + 40, y / 160, 4)) * 0.6;
+      let r = L * 0.96, gg = L * 0.98, b = L * 1.06;
+      r += rust * 0.028; gg += rust * 0.012; b -= rust * 0.01;
+      const k = (j * w + i) * 4;
+      d[k] = clamp(r) * 255; d[k + 1] = clamp(gg) * 255; d[k + 2] = clamp(b) * 255; d[k + 3] = 255;
+    }
+  }
+  g.putImageData(img, x0, y0);
+  return c;
+}
+
+function drawScratches(g, box, n, opts = {}) {
+  const { angleBias = 0, lenMin = 15, lenMax = 260, bright = 1 } = opts;
+  for (let i = 0; i < n; i++) {
+    const x = R(box.x0, box.x1), y = R(box.y0, box.y1);
+    const a = angleBias + R(-0.9, 0.9) + (rand() < 0.3 ? Math.PI / 2 * R(-1, 1) : 0);
+    const len = lenMin + (lenMax - lenMin) * rand() ** 2.2;
+    const dx = Math.cos(a) * len, dy = Math.sin(a) * len;
+    const bend = R(-0.12, 0.12) * len;
+    const deep = rand() < 0.12;
+    const w = deep ? R(1.4, 2.6) : R(0.5, 1.2);
+    const cx = x + dx / 2 - dy / len * bend, cy = y + dy / 2 + dx / len * bend;
+    const path = () => { g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(cx, cy, x + dx, y + dy); };
+    g.lineCap = "round";
+    path(); g.strokeStyle = `rgba(0,0,0,${deep ? 0.75 : 0.4})`; g.lineWidth = w + (deep ? 1.6 : 0.6); g.stroke();
+    g.save(); g.translate(0, -0.8);
+    path(); g.strokeStyle = `rgba(190,192,200,${(deep ? R(0.25, 0.45) : R(0.06, 0.24)) * bright})`; g.lineWidth = w * 0.6; g.stroke();
+    g.restore();
+  }
+}
+
+function drawDents(g, n, box) {
+  for (let i = 0; i < n; i++) {
+    const x = R(box.x0, box.x1), y = R(box.y0, box.y1), r = R(5, 22), sx = R(0.8, 1.8);
+    g.save(); g.translate(x, y); g.scale(sx, 1);
+    let gr = g.createRadialGradient(0, -r * 0.2, 0, 0, 0, r);
+    gr.addColorStop(0, "rgba(0,0,0,0.55)"); gr.addColorStop(0.7, "rgba(0,0,0,0.25)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = gr; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.fill();
+    // lit lower inner wall
+    g.filter = `blur(${(r * 0.08).toFixed(1)}px)`;
+    g.beginPath(); g.arc(0, 0, r * 0.72, Math.PI * 0.2, Math.PI * 0.8);
+    g.strokeStyle = "rgba(170,172,182,0.1)"; g.lineWidth = r * 0.14; g.stroke();
+    g.filter = "none";
+    g.restore();
+  }
+}
+
+// Crimson anti-magic cracks
+function crackTree(x, y, ang, len, depth, out) {
+  const pts = [[x, y]];
+  let a = ang;
+  let seg = 0;
+  while (seg < len) {
+    const s = R(5, 13);
+    a += R(-0.55, 0.55);
+    a = ang + clamp(a - ang, -0.9, 0.9);
+    x += Math.cos(a) * s; y += Math.sin(a) * s; seg += s;
+    const hh = halfH(x);
+    if (Math.abs(y - CY) > hh * 0.86 || x > BLADE.x1 - 140) break;
+    pts.push([x, y]);
+    if (depth < 3 && rand() < 0.09) crackTree(x, y, a + R(0.5, 1.1) * (rand() < 0.5 ? -1 : 1), len * R(0.2, 0.45), depth + 1, out);
+  }
+  out.push({ pts, depth });
+}
+function drawCracks(g, glow) {
+  const cracks = [];
+  const seeds = [
+    [1180, 470, -0.15, 260], [1560, 560, 0.1, 340], [1990, 470, 0.25, 300], [2350, 545, -0.2, 380],
+    [2800, 500, 0.05, 330], [3200, 560, -0.25, 280], [3520, 470, 0.2, 230], [1760, 440, 2.9, 150],
+    [2600, 590, 3.3, 160], [3000, 430, 2.8, 140],
+  ];
+  for (const [x, y, a, l] of seeds) crackTree(x, y, a, l, 0, cracks);
+  let stroke = (pts) => { g.beginPath(); g.moveTo(...pts[0]); for (const p of pts) g.lineTo(...p); };
+  g.lineJoin = "round"; g.lineCap = "round";
+  // fissure (dark cut)
+  for (const c of cracks) { stroke(c.pts); g.strokeStyle = "rgba(0,0,0,0.9)"; g.lineWidth = 4.5 - c.depth; g.stroke(); }
+  // everything below is emissive and goes on its own layer
+  g = glow;
+  stroke = (pts) => { g.beginPath(); g.moveTo(...pts[0]); for (const p of pts) g.lineTo(...p); };
+  g.save(); g.globalCompositeOperation = "lighter";
+  g.lineJoin = "round"; g.lineCap = "round";
+  // wide soft glow
+  g.filter = "blur(14px)";
+  for (const c of cracks) { stroke(c.pts); g.strokeStyle = "rgba(200,10,15,0.32)"; g.lineWidth = 16 - c.depth * 3; g.stroke(); }
+  g.filter = "blur(4px)";
+  for (const c of cracks) { stroke(c.pts); g.strokeStyle = "rgba(255,40,25,0.3)"; g.lineWidth = 6 - c.depth; g.stroke(); }
+  g.filter = "none";
+  for (const c of cracks) { stroke(c.pts); g.strokeStyle = "rgba(235,45,30,0.7)"; g.lineWidth = 2 - c.depth * 0.4; g.stroke(); }
+  for (const c of cracks) if (c.depth < 2) { stroke(c.pts); g.strokeStyle = "rgba(255,170,130,0.4)"; g.lineWidth = 0.7; g.stroke(); }
+  g.restore();
+  return cracks;
+}
+
+function drawBlade() {
+  const tex = bladeTexture();
+  const [c, g] = layer();
+  g.save(); g.clip(bladePath);
+  g.drawImage(tex, 0, 0);
+  const box = { x0: BLADE.x0, x1: BLADE.x1, y0: CY - 170, y1: CY + 170 };
+  drawDents(g, 34, box);
+  drawScratches(g, box, 520, { angleBias: -0.25 });
+  drawScratches(g, box, 140, { lenMin: 4, lenMax: 30 });
+  // edge-parallel sharpening marks along bevels
+  for (let i = 0; i < 160; i++) {
+    const x = R(BLADE.x0 + 40, BLADE.x1 - 60), top = rand() < 0.5;
+    const y = CY + (top ? -1 : 1) * halfH(x) * R(0.83, 0.95);
+    g.beginPath(); g.moveTo(x, y); g.lineTo(x + R(30, 140), y + R(-2, 2));
+    g.strokeStyle = `rgba(200,200,210,${R(0.04, 0.14)})`; g.lineWidth = R(0.5, 1); g.stroke();
+  }
+  const [gc, glow] = layer();
+  glow.save(); glow.clip(bladePath);
+  drawCracks(g, glow);
+  // faint crimson inner haze
+  glow.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 9; i++) {
+    const x = R(1200, 3600), y = CY + R(-60, 60), r = R(90, 200);
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, "rgba(120,0,8,0.12)"); gr.addColorStop(1, "rgba(120,0,8,0)");
+    glow.fillStyle = gr; glow.fillRect(x - r, y - r, 2 * r, 2 * r);
+  }
+  glow.restore();
+  LAYERS.glow = gc;
+  // shading near the guard (occlusion)
+  const occ = g.createLinearGradient(BLADE.x0, 0, BLADE.x0 + 120, 0);
+  occ.addColorStop(0, "rgba(0,0,0,0.7)"); occ.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = occ; g.fillRect(BLADE.x0, 0, 120, H);
+  g.restore();
+  // edge lines: light top rim, crisp dark outline
+  g.lineJoin = "round";
+  g.strokeStyle = "rgba(0,0,0,0.85)"; g.lineWidth = 2.5; g.stroke(bladePath);
+  g.save(); g.clip(bladePath);
+  g.translate(0, 1.5); g.strokeStyle = "rgba(175,178,190,0.35)"; g.lineWidth = 1.4; g.stroke(bladePath);
+  g.restore();
+  return c;
+}
+
+// ---------- grip ----------
+function drawGrip(g) {
+  const { x0, x1, h } = GRIP;
+  const cyl = (y0, y1, stops) => {
+    const gr = g.createLinearGradient(0, y0, 0, y1);
+    for (const [t, col] of stops) gr.addColorStop(t, col);
+    return gr;
+  };
+  // core
+  g.fillStyle = cyl(CY - h, CY + h, [[0, "#1a0f08"], [0.3, "#5a3a22"], [0.55, "#3c2616"], [1, "#0d0704"]]);
+  g.beginPath(); g.roundRect(x0, CY - h, x1 - x0, 2 * h, 10); g.fill();
+  // leather wraps (slanted overlapping bands)
+  const bw = 44, slant = 34;
+  g.save(); g.beginPath(); g.rect(x0 + 18, CY - h - 4, x1 - x0 - 36, 2 * h + 8); g.clip();
+  let idx = 0;
+  for (let x = x0 - 40; x < x1 + 40; x += bw - 6, idx++) {
+    const hue = R(-0.08, 0.08);
+    const bulge = 4; // wraps stand proud of the core
+    const path = new Path2D();
+    path.moveTo(x, CY - h - bulge);
+    path.lineTo(x + bw, CY - h - bulge);
+    path.quadraticCurveTo(x + bw + slant * 0.6, CY, x + bw + slant, CY + h + bulge);
+    path.lineTo(x + slant, CY + h + bulge);
+    path.quadraticCurveTo(x + slant * 0.4, CY, x, CY - h - bulge);
+    const k = 1 + hue;
+    const c = (r, gg, b) => `rgb(${r * k | 0},${gg * k | 0},${b * k | 0})`;
+    g.fillStyle = cyl(CY - h - 4, CY + h + 4, [[0, c(40, 24, 13)], [0.18, c(120, 80, 50)], [0.32, c(150, 104, 66)], [0.5, c(106, 70, 42)], [0.8, c(58, 36, 20)], [1, c(22, 13, 7)]]);
+    g.fill(path);
+    // leather grain + scuffs
+    g.save(); g.clip(path);
+    for (let i = 0; i < 90; i++) {
+      const px = R(x - 5, x + bw + slant + 5), py = R(CY - h - 4, CY + h + 4);
+      g.fillStyle = rand() < 0.5 ? `rgba(0,0,0,${R(0.08, 0.22)})` : `rgba(220,170,120,${R(0.04, 0.12)})`;
+      g.fillRect(px, py, R(1, 3), R(1, 2));
+    }
+    for (let i = 0; i < 3; i++) {
+      const px = R(x, x + bw + slant), py = R(CY - h, CY + h);
+      g.beginPath(); g.moveTo(px, py); g.lineTo(px + R(-12, 12), py + R(-10, 10));
+      g.strokeStyle = `rgba(210,160,110,${R(0.1, 0.25)})`; g.lineWidth = R(0.6, 1.4); g.stroke();
+    }
+    // stitched edge on the band
+    g.setLineDash([5, 6]);
+    g.beginPath(); g.moveTo(x + 6, CY - h); g.quadraticCurveTo(x + 6 + slant * 0.4, CY, x + 6 + slant, CY + h);
+    g.strokeStyle = "rgba(20,10,4,0.55)"; g.lineWidth = 1.3; g.stroke(); g.setLineDash([]);
+    // shadow cast by overlapping band on the right
+    const sh = g.createLinearGradient(x + bw - 16, 0, x + bw + 4, 0);
+    sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,0.55)");
+    g.fillStyle = sh; g.fillRect(x, CY - h - 6, bw + slant + 6, 2 * h + 12);
+    g.restore();
+    g.strokeStyle = "rgba(15,8,3,0.9)"; g.lineWidth = 1.6; g.stroke(path);
+  }
+  g.restore();
+  // metal ferrules
+  const ferrule = (fx, fw, fh) => {
+    g.fillStyle = cyl(CY - fh, CY + fh, [[0, "#070708"], [0.2, "#5b5d64"], [0.32, "#a4a7b0"], [0.45, "#3b3d44"], [0.8, "#151518"], [1, "#050505"]]);
+    g.beginPath(); g.roundRect(fx, CY - fh, fw, 2 * fh, 5); g.fill();
+    g.strokeStyle = "rgba(0,0,0,0.9)"; g.lineWidth = 2; g.stroke();
+    for (let i = 1; i < 3; i++) { g.beginPath(); g.moveTo(fx + (fw * i) / 3, CY - fh + 2); g.lineTo(fx + (fw * i) / 3, CY + fh - 2); g.strokeStyle = "rgba(0,0,0,0.6)"; g.lineWidth = 1.5; g.stroke(); }
+    g.save(); g.beginPath(); g.roundRect(fx, CY - fh, fw, 2 * fh, 5); g.clip();
+    drawScratches(g, { x0: fx, x1: fx + fw, y0: CY - fh, y1: CY + fh }, 25, { lenMin: 3, lenMax: 18 });
+    g.restore();
+  };
+  ferrule(x0 - 8, 34, h + 10);
+  ferrule(x1 - 30, 40, h + 14);
+}
+
+// ---------- pommel ----------
+function drawPommel(g) {
+  const { x, y, r } = POMMEL;
+  // neck
+  g.fillStyle = (() => { const gr = g.createLinearGradient(0, y - 34, 0, y + 34); gr.addColorStop(0, "#050506"); gr.addColorStop(0.3, "#4a4c52"); gr.addColorStop(0.5, "#202125"); gr.addColorStop(1, "#040404"); return gr; })();
+  g.fillRect(x + r * 0.7, y - 34, GRIP.x0 - (x + r * 0.7) + 2, 68);
+  const hex = (rr, rot = 0) => { const p = []; for (let i = 0; i < 6; i++) { const a = rot + (Math.PI / 3) * i; p.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]); } return p; };
+  const outer = hex(r), inner = hex(r * 0.56);
+  const light = [-0.45, -0.85];
+  for (let i = 0; i < 6; i++) {
+    const a = outer[i], b = outer[(i + 1) % 6], c = inner[(i + 1) % 6], d = inner[i];
+    const ma = (Math.PI / 3) * (i + 0.5);
+    const n = [Math.cos(ma), Math.sin(ma)];
+    const lit = clamp(0.5 + 0.5 * (n[0] * light[0] + n[1] * light[1]));
+    const base = 18 + lit * 95;
+    const gr = g.createLinearGradient(...d, ...a);
+    gr.addColorStop(0, `rgb(${base * 0.9 | 0},${base * 0.92 | 0},${base | 0})`);
+    gr.addColorStop(1, `rgb(${base * 0.55 | 0},${base * 0.56 | 0},${base * 0.62 | 0})`);
+    g.beginPath(); g.moveTo(...a); g.lineTo(...b); g.lineTo(...c); g.lineTo(...d); g.closePath();
+    g.fillStyle = gr; g.fill();
+    g.strokeStyle = "rgba(0,0,0,0.7)"; g.lineWidth = 1.5; g.stroke();
+    // lit ridge
+    g.beginPath(); g.moveTo(...a); g.lineTo(...d);
+    g.strokeStyle = `rgba(200,202,212,${0.1 + lit * 0.3})`; g.lineWidth = 1.2; g.stroke();
+  }
+  // flat face
+  const face = g.createLinearGradient(x - r * 0.5, y - r * 0.5, x + r * 0.5, y + r * 0.5);
+  face.addColorStop(0, "#3a3c42"); face.addColorStop(0.5, "#1a1b1f"); face.addColorStop(1, "#08080a");
+  g.beginPath(); inner.forEach((p, i) => (i ? g.lineTo(...p) : g.moveTo(...p))); g.closePath();
+  g.fillStyle = face; g.fill(); g.strokeStyle = "rgba(0,0,0,0.9)"; g.lineWidth = 2; g.stroke();
+  // clover stamp on face
+  g.save(); g.translate(x, y); g.scale(0.16, 0.16);
+  g.fillStyle = "#0a0a0c"; g.fill(cloverPath(0, 0, 1)); g.restore();
+  g.save(); g.translate(x, y); g.scale(0.16, 0.16);
+  g.strokeStyle = "rgba(160,162,172,0.35)"; g.lineWidth = 8; g.stroke(cloverPath(0, 0, 1)); g.restore();
+  // wear
+  g.save(); g.beginPath(); outer.forEach((p, i) => (i ? g.lineTo(...p) : g.moveTo(...p))); g.closePath(); g.clip();
+  drawScratches(g, { x0: x - r, x1: x + r, y0: y - r, y1: y + r }, 70, { lenMin: 4, lenMax: 40 });
+  g.restore();
+  g.beginPath(); outer.forEach((p, i) => (i ? g.lineTo(...p) : g.moveTo(...p))); g.closePath();
+  g.strokeStyle = "rgba(0,0,0,0.95)"; g.lineWidth = 3; g.stroke();
+  // chipped vertices
+  for (const p of outer) { g.beginPath(); g.arc(...p, R(2, 5), 0, Math.PI * 2); g.fillStyle = "rgba(170,172,180,0.35)"; g.fill(); }
+}
+
+// ---------- clover crossguard ----------
+function heart(p, s, rot, cx, cy) {
+  const pts = [
+    ["m", 0, 0],
+    ["c", -0.12 * s, -0.25 * s, -0.78 * s, -0.42 * s, -0.6 * s, -0.86 * s],
+    ["c", -0.45 * s, -1.18 * s, -0.06 * s, -1.12 * s, 0, -0.82 * s],
+    ["c", 0.06 * s, -1.12 * s, 0.45 * s, -1.18 * s, 0.6 * s, -0.86 * s],
+    ["c", 0.78 * s, -0.42 * s, 0.12 * s, -0.25 * s, 0, 0],
+  ];
+  const cs = Math.cos(rot), sn = Math.sin(rot);
+  const T = (x, y) => [cx + x * cs - y * sn, cy + x * sn + y * cs];
+  for (const seg of pts) {
+    if (seg[0] === "m") p.moveTo(...T(seg[1], seg[2]));
+    else p.bezierCurveTo(...T(seg[1], seg[2]), ...T(seg[3], seg[4]), ...T(seg[5], seg[6]));
+  }
+  p.closePath();
+}
+// 4-leaf clover: big leaves up/down, smaller leaves along the sword axis
+const LEAVES = [
+  { rot: 0, s: 250 },            // up
+  { rot: Math.PI, s: 250 },      // down
+  { rot: -Math.PI / 2, s: 120 }, // toward grip
+  { rot: Math.PI / 2, s: 120 },  // toward blade
+];
+function cloverPath(cx, cy, k) {
+  const p = new Path2D();
+  for (const L of LEAVES) heart(p, L.s * k, L.rot, cx, cy);
+  p.arc(cx + 0, cy, 60 * k, 0, Math.PI * 2);
+  return p;
+}
+function drawGuard(g) {
+  const { x, y } = GUARD;
+  const leafTex = (() => {
+    const [c, gg] = layer();
+    const img = gg.createImageData(600, 620);
+    const d = img.data;
+    for (let j = 0; j < 620; j++) for (let i = 0; i < 600; i++) {
+      const px = x - 300 + i, py = y - 310 + j;
+      let L = 0.12 + (fbm(px / 90, py / 90, 4) - 0.5) * 0.08 + (hash2(px, py) - 0.5) * 0.03 - (py - y) / 310 * 0.05;
+      const k = (j * 600 + i) * 4;
+      d[k] = clamp(L * 0.95) * 255; d[k + 1] = clamp(L * 0.97) * 255; d[k + 2] = clamp(L * 1.07) * 255; d[k + 3] = 255;
+    }
+    gg.putImageData(img, x - 300, y - 310);
+    return c;
+  })();
+  const outline = cloverPath(x, y, 1);
+  // cast shadow on blade / grip
+  g.save(); g.filter = "blur(10px)"; g.translate(10, 12); g.fillStyle = "rgba(0,0,0,0.6)"; g.fill(outline); g.restore();
+  g.save(); g.clip(outline); g.drawImage(leafTex, 0, 0);
+  // per-leaf raised centres and veins
+  for (const L of LEAVES) {
+    const inner = new Path2D(); heart(inner, L.s * 0.78, L.rot, x + Math.sin(L.rot) * L.s * 0.06, y - Math.cos(L.rot) * L.s * 0.06);
+    const cs = Math.cos(L.rot), sn = Math.sin(L.rot);
+    const tip = [x + sn * L.s * 0.9, y - cs * L.s * 0.9];
+    const gr = g.createLinearGradient(x, y, ...tip);
+    gr.addColorStop(0, "rgba(10,10,12,0.2)"); gr.addColorStop(0.6, "rgba(90,92,100,0.18)"); gr.addColorStop(1, "rgba(10,10,12,0.3)");
+    g.fillStyle = gr; g.fill(inner);
+    g.strokeStyle = "rgba(0,0,0,0.55)"; g.lineWidth = 3; g.stroke(inner);
+    g.save(); g.translate(0, 1.5); g.strokeStyle = "rgba(170,172,184,0.22)"; g.lineWidth = 1.2; g.stroke(inner); g.restore();
+    // engraved vein
+    g.beginPath(); g.moveTo(x + sn * 50, y - cs * 50); g.lineTo(x + sn * L.s * 0.76, y - cs * L.s * 0.76);
+    g.strokeStyle = "rgba(0,0,0,0.7)"; g.lineWidth = 3; g.stroke();
+    g.save(); g.translate(1, 1.5); g.strokeStyle = "rgba(160,160,170,0.2)"; g.lineWidth = 1; g.stroke(); g.restore();
+  }
+  drawDents(g, 10, { x0: x - 150, x1: x + 150, y0: y - 250, y1: y + 250 });
+  drawScratches(g, { x0: x - 170, x1: x + 170, y0: y - 260, y1: y + 260 }, 170, { lenMin: 4, lenMax: 70 });
+  // top-lit leaf rims
+  g.save(); g.translate(0, 3); g.strokeStyle = "rgba(190,192,204,0.35)"; g.lineWidth = 2; g.stroke(outline); g.restore();
+  g.restore();
+  g.strokeStyle = "rgba(0,0,0,0.95)"; g.lineWidth = 3; g.stroke(outline);
+  // central boss with a faint anti-magic ember
+  const bg = g.createRadialGradient(x - 16, y - 18, 4, x, y, 60);
+  bg.addColorStop(0, "#5c5f68"); bg.addColorStop(0.35, "#23242a"); bg.addColorStop(1, "#060607");
+  g.beginPath(); g.arc(x, y, 58, 0, Math.PI * 2); g.fillStyle = bg; g.fill();
+  g.strokeStyle = "#000"; g.lineWidth = 3; g.stroke();
+  g.beginPath(); g.arc(x, y, 44, 0, Math.PI * 2); g.strokeStyle = "rgba(150,152,162,0.25)"; g.lineWidth = 1.5; g.stroke();
+  g.save(); g.globalCompositeOperation = "lighter";
+  const eg = g.createRadialGradient(x, y, 0, x, y, 30);
+  eg.addColorStop(0, "rgba(255,70,40,0.75)"); eg.addColorStop(0.35, "rgba(190,15,15,0.4)"); eg.addColorStop(1, "rgba(120,0,0,0)");
+  g.fillStyle = eg; g.beginPath(); g.arc(x, y, 30, 0, Math.PI * 2); g.fill();
+  g.restore();
+  g.beginPath(); g.arc(x, y, 12, 0, Math.PI * 2); g.fillStyle = "#0b0405"; g.fill();
+  g.beginPath(); g.arc(x, y, 12, Math.PI * 1.1, Math.PI * 1.6); g.strokeStyle = "rgba(255,120,90,0.6)"; g.lineWidth = 2; g.stroke();
+  // rivets on each leaf
+  for (const L of LEAVES) {
+    const cs = Math.cos(L.rot), sn = Math.sin(L.rot);
+    const rx = x + sn * L.s * 0.45, ry = y - cs * L.s * 0.45;
+    const rg = g.createRadialGradient(rx - 3, ry - 3, 1, rx, ry, 9);
+    rg.addColorStop(0, "#8c8f99"); rg.addColorStop(0.5, "#2c2d33"); rg.addColorStop(1, "#050505");
+    g.beginPath(); g.arc(rx, ry, 8, 0, Math.PI * 2); g.fillStyle = rg; g.fill();
+  }
+}
+
+// ---------- smoke, debris, embers ----------
+function drawSmoke(g, front) {
+  // Long, thin, tapering wisps peeling off the edges and trailing toward the tip.
+  const n = front ? 20 : 38;
+  g.lineCap = "round";
+  for (let i = 0; i < n; i++) {
+    const top = rand() < 0.68;
+    const x0 = R(1050, BLADE.x1 - 300);
+    const y0 = CY + (top ? -1 : 1) * (halfH(x0) - R(0, 6));
+    const len = R(220, 620), rise = R(60, 200) * (top ? -1 : 0.6);
+    const amp = R(6, 22), freq = R(1.2, 2.6), ph = R(0, 6.28);
+    const pts = [];
+    for (let k = 0; k <= 40; k++) {
+      const t = k / 40;
+      pts.push([x0 + len * t, y0 + rise * t * t + Math.sin(ph + t * freq * 6.28) * amp * t]);
+    }
+    const w0 = R(5, front ? 10 : 16), a0 = R(0.35, 0.6);
+    for (let k = 0; k < pts.length - 1; k++) {
+      const t = k / (pts.length - 1);
+      const fade = Math.sin(Math.PI * Math.min(1, t * 1.6 + 0.08)) * (1 - t) ** 0.6;
+      const w = w0 * (0.35 + 1.1 * t); // wisps spread as they drift
+      g.filter = `blur(${(w * 0.6).toFixed(1)}px)`;
+      g.beginPath(); g.moveTo(...pts[k]); g.lineTo(...pts[k + 1]);
+      g.strokeStyle = `rgba(18,18,22,${(a0 * fade).toFixed(3)})`; g.lineWidth = w; g.stroke();
+    }
+    g.filter = "blur(1.5px)";
+    for (let k = 0; k < pts.length - 1; k++) {
+      const t = k / (pts.length - 1);
+      g.beginPath(); g.moveTo(...pts[k]); g.lineTo(...pts[k + 1]);
+      g.strokeStyle = `rgba(140,138,148,${(0.3 * (1 - t) * Math.min(1, t * 5)).toFixed(3)})`; g.lineWidth = 1.2; g.stroke();
+    }
+  }
+  g.filter = "none";
+}
+function drawDebris(g) {
+  for (let i = 0; i < 46; i++) {
+    const x = R(980, BLADE.x1 + 30);
+    const side = rand() < 0.6 ? -1 : 1;
+    const y = CY + side * (halfH(x) + R(20, 180));
+    const s = R(3, 13) * (rand() < 0.15 ? 1.6 : 1);
+    const nv = RI(4, 7), rot = R(0, 6.28);
+    const p = new Path2D();
+    for (let k = 0; k < nv; k++) {
+      const a = rot + (k / nv) * Math.PI * 2, rr = s * R(0.55, 1.1);
+      k ? p.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr) : p.moveTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+    }
+    p.closePath();
+    const gr = g.createLinearGradient(x, y - s, x, y + s);
+    gr.addColorStop(0, "#4a4b52"); gr.addColorStop(0.4, "#1b1b1f"); gr.addColorStop(1, "#060607");
+    g.fillStyle = gr; g.fill(p);
+    g.strokeStyle = "rgba(0,0,0,0.8)"; g.lineWidth = 1; g.stroke(p);
+    if (rand() < 0.3) { g.save(); g.globalCompositeOperation = "lighter"; g.strokeStyle = "rgba(255,70,30,0.45)"; g.lineWidth = 1; g.stroke(p); g.restore(); }
+  }
+}
+function drawEmbers(g) {
+  g.save(); g.globalCompositeOperation = "lighter";
+  for (let i = 0; i < 170; i++) {
+    const x = R(950, BLADE.x1 + 40);
+    const side = rand() < 0.72 ? -1 : 1;
+    const y = CY + side * (halfH(x) + R(-6, 210) * (side < 0 ? 1 : 0.6));
+    const r = R(0.8, 3.4) * (rand() < 0.08 ? 1.8 : 1);
+    const hot = rand();
+    const core = hot > 0.6 ? "255,210,150" : hot > 0.25 ? "255,120,60" : "255,55,35";
+    // glow
+    const gr = g.createRadialGradient(x, y, 0, x, y, r * 6);
+    gr.addColorStop(0, `rgba(255,60,25,${R(0.25, 0.5)})`); gr.addColorStop(1, "rgba(255,30,10,0)");
+    g.fillStyle = gr; g.fillRect(x - r * 6, y - r * 6, r * 12, r * 12);
+    // streak (drifting up and toward the tip)
+    if (rand() < 0.45) {
+      const len = R(6, 26);
+      const sg = g.createLinearGradient(x, y, x - len, y + len * 0.5);
+      sg.addColorStop(0, `rgba(${core},0.7)`); sg.addColorStop(1, `rgba(${core},0)`);
+      g.strokeStyle = sg; g.lineWidth = r * 0.9; g.lineCap = "round";
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x - len, y + len * 0.5); g.stroke();
+    }
+    g.fillStyle = `rgba(${core},${R(0.75, 1)})`;
+    g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+  }
+  g.restore();
+}
+
+// Separate layers so a page can animate them independently:
+//   base  - the sword itself (no smoke, no emissive light)
+//   smoke - edge smoke wisps
+//   glow  - crimson crack light, already clipped to the blade
+//   fx    - floating debris and embers
+const LAYERS = {};
+function render() {
+  const [base, b] = layer();
+  const [smokeBack, sb] = layer();
+  const [smokeFront, sf] = layer();
+  drawSmoke(sb, false);
+  b.drawImage(drawBlade(), 0, 0);
+  drawGrip(b);
+  drawPommel(b);
+  drawGuard(b);
+  drawSmoke(sf, true);
+  const [smoke, sm] = layer();
+  sm.drawImage(smokeBack, 0, 0); sm.drawImage(smokeFront, 0, 0);
+  LAYERS.smoke = smoke;
+  const [fx, f] = layer();
+  drawDebris(f);
+  drawEmbers(f);
+  LAYERS.base = base; LAYERS.fx = fx;
+  // flattened asset
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(smokeBack, 0, 0);
+  ctx.drawImage(base, 0, 0);
+  ctx.globalCompositeOperation = "lighter"; ctx.drawImage(LAYERS.glow, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.drawImage(smokeFront, 0, 0);
+  ctx.drawImage(fx, 0, 0);
+  LAYERS.full = canvas;
+}
+window.renderSword = () => { render(); return true; };
+</script>
+</body>
+</html>

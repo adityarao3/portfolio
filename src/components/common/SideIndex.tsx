@@ -5,7 +5,7 @@ import { useLenis } from "lenis/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const sections = [
+export const sections = [
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
   { id: "github", label: "GitHub" },
@@ -59,7 +59,7 @@ export default function SideIndex() {
         isHome ? "lg:top-[22vh]" : "lg:top-16"
       }`}
     >
-      <h3 className="mb-1 hidden text-[10px] font-bold tracking-[0.2em] text-zinc-400 uppercase lg:block dark:text-zinc-600">
+      <h3 className="mb-1 hidden text-[10px] font-bold tracking-[0.2em] text-red-600 uppercase lg:block dark:text-red-500">
         Index
       </h3>
 

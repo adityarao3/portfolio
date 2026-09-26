@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/common/ThemeProviders";
 import SideIndex from "@/components/common/SideIndex";
 import Footer from "@/components/common/Footer";
 import RunnerPet from "@/components/common/RunnerPet";
+import AstaArt from "@/components/common/AstaArt";
+import SwordRail from "@/components/common/SwordRail";
 import ReactLenis from "lenis/react";
 import { ViewTransitions } from "next-view-transitions";
 
@@ -76,6 +78,8 @@ export default function RootLayout({
                 style={{ top: "calc(22vh - 1px)" }}
               />
 
+              <AstaArt />
+              <SwordRail />
               <SideIndex />
               {children}
 
